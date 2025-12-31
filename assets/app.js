@@ -403,7 +403,7 @@ async function createDocument(data) {
                                     size: 6
                                 }
                             },
-                            spacing: { after: 50 }
+                            spacing: { after: 0 }
                         }),
                         new docx.Paragraph({
                             children: [
@@ -426,6 +426,7 @@ async function createDocument(data) {
                                     italics: true
                                 })
                             ],
+                            spacing: { before: 0, after: 0 },
                             tabStops: [
                                 {
                                     type: docx.TabStopType.CENTER,
@@ -457,21 +458,7 @@ async function createDocument(data) {
                     spacing: { after: 300 }
                 }),
                 
-                // Analysis and Commentary
-                new docx.Paragraph({
-                    text: "Analysis and Commentary",
-                    bold: true,
-                    size: 24, // 12pt
-                    spacing: { after: 200 },
-                    color: "000000"
-                }),
-                ...analysisParagraphs,
-                
-                new docx.Paragraph({
-                    spacing: { after: 200 }
-                }),
-                
-                // Key Takeaways
+                // KEY TAKEAWAYS FIRST (moved before Analysis)
                 new docx.Paragraph({
                     text: "Key Takeaways",
                     bold: true,
@@ -485,14 +472,17 @@ async function createDocument(data) {
                     spacing: { after: 300 }
                 }),
                 
-                // Content
+                // Analysis and Commentary (now after Key Takeaways)
                 new docx.Paragraph({
-                    text: "Content",
+                    text: "Analysis and Commentary",
                     bold: true,
-                    size: 24,
+                    size: 24, // 12pt
                     spacing: { after: 200 },
                     color: "000000"
                 }),
+                ...analysisParagraphs,
+                
+                // CONTENT SECTION REMOVED - Content now merged into Analysis
                 ...contentParagraphs,
                 
                 // Images
