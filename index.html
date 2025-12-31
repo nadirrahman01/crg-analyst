@@ -24,11 +24,40 @@
         </form>
         
         <div id="message" class="message"></div>
+        
+        <!-- Debug info -->
+        <div id="debug" style="margin-top: 20px; padding: 10px; background: #f0f0f0; font-size: 12px; display: none;">
+            <strong>Debug Info:</strong>
+            <div id="debugContent"></div>
+        </div>
     </div>
     
-    <!-- External Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- Try these alternative CDN links -->
+    <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
+    <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    
+    <!-- Fallback: Use jsdelivr CDN -->
+    <!-- 
+    <script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    -->
+    
+    <!-- Check if libraries loaded -->
+    <script>
+        window.addEventListener('load', function() {
+            const debugDiv = document.getElementById('debugContent');
+            debugDiv.innerHTML = `
+                docx loaded: ${typeof docx !== 'undefined'}<br>
+                FileSaver loaded: ${typeof saveAs !== 'undefined'}
+            `;
+            document.getElementById('debug').style.display = 'block';
+            
+            if (typeof docx === 'undefined' || typeof saveAs === 'undefined') {
+                document.getElementById('message').className = 'message error';
+                document.getElementById('message').textContent = '✗ Required libraries failed to load. Please refresh the page.';
+            }
+        });
+    </script>
     
     <!-- Your JavaScript -->
     <script src="assets/app.js"></script>
