@@ -2,29 +2,35 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Research Documentation Tool</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
     <div class="container">
         <h1>Research Documentation</h1>
         
         <form id="researchForm">
-            <label>Title:</label>
-            <input type="text" id="title" required>
+            <label for="title">Title:</label>
+            <input type="text" id="title" required placeholder="Enter research title...">
             
-            <label>Research Content:</label>
-            <textarea id="content" rows="10" required></textarea>
+            <label for="content">Research Content:</label>
+            <textarea id="content" rows="10" required placeholder="Enter your research content..."></textarea>
             
-            <label>Upload Images/Graphs:</label>
+            <label for="imageUpload">Upload Images/Graphs:</label>
             <input type="file" id="imageUpload" multiple accept="image/*">
             
             <button type="submit">Generate Word Document</button>
         </form>
+        
+        <div id="message" class="message"></div>
     </div>
     
+    <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script src="app.js"></script>
+    
+    <!-- Your JavaScript -->
+    <script src="assets/app.js"></script>
 </body>
 </html>
