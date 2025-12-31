@@ -164,9 +164,15 @@ async function createDocument(data) {
         dateTimeString
     } = data;
     
-    // Process key takeaways into bullet points
-    const takeawayLines = keyTakeaways.split('\n').filter(line => line.trim());
+    // Process key takeaways into bullet points - preserve empty lines
+    const takeawayLines = keyTakeaways.split('\n');
     const takeawayBullets = takeawayLines.map(line => {
+        if (line.trim() === '') {
+            return new docx.Paragraph({
+                text: "",
+                spacing: { after: 100 }
+            });
+        }
         const cleanLine = line.replace(/^[-*•]\s*/, '').trim();
         return new docx.Paragraph({
             text: cleanLine,
@@ -177,13 +183,35 @@ async function createDocument(data) {
         });
     });
     
-    // Process content into paragraphs
-    const contentParagraphs = content.split('\n').filter(line => line.trim()).map(line => 
-        new docx.Paragraph({
+    // Process analysis - preserve empty lines for paragraphs
+    const analysisLines = analysis.split('\n');
+    const analysisParagraphs = analysisLines.map(line => {
+        if (line.trim() === '') {
+            return new docx.Paragraph({
+                text: "",
+                spacing: { after: 150 }
+            });
+        }
+        return new docx.Paragraph({
             text: line,
             spacing: { after: 150 }
-        })
-    );
+        });
+    });
+    
+    // Process content into paragraphs - preserve empty lines
+    const contentLines = content.split('\n');
+    const contentParagraphs = contentLines.map(line => {
+        if (line.trim() === '') {
+            return new docx.Paragraph({
+                text: "",
+                spacing: { after: 150 }
+            });
+        }
+        return new docx.Paragraph({
+            text: line,
+            spacing: { after: 150 }
+        });
+    });
     
     // Process images
     const imageParagraphs = await addImages(imageFiles);
@@ -271,7 +299,7 @@ async function createDocument(data) {
                         verticalAlign: docx.VerticalAlign.TOP
                     }),
                     new docx.TableCell({
-                        children: coAuthors.map(coAuthor => 
+                        children: coAuthors.length > 0 ? coAuthors.map(coAuthor => 
                             new docx.Paragraph({
                                 children: [
                                     new docx.TextRun({
@@ -283,7 +311,7 @@ async function createDocument(data) {
                                 alignment: docx.AlignmentType.RIGHT,
                                 spacing: { after: 100 }
                             })
-                        ),
+                        ) : [new docx.Paragraph({ text: "" })],
                         width: {
                             size: 40,
                             type: docx.WidthType.PERCENTAGE
@@ -295,14 +323,28 @@ async function createDocument(data) {
         ]
     });
     
-    // Create document with LANDSCAPE orientation
+    // Create document with LANDSCAPE orientation and NARROW margins (0.5 inch)
     const doc = new docx.Document({
         styles: {
             default: {
                 document: {
                     run: {
                         font: "Book Antiqua",
-                        size: 20 // 10pt = 20 half-points
+                        size: 20, // 10pt = 20 half-points
+                        color: "000000" // Black color
+                    },
+                    paragraph: {
+                        spacing: {
+                            after: 150
+                        }
+                    }
+                },
+                heading2: {
+                    run: {
+                        font: "Book Antiqua",
+                        size: 24,
+                        bold: true,
+                        color: "000000" // Black color (not blue)
                     }
                 }
             }
@@ -311,16 +353,16 @@ async function createDocument(data) {
             properties: {
                 page: {
                     margin: {
-                        top: 1440,
-                        right: 1440,
-                        bottom: 1440,
-                        left: 1440
+                        top: 720,    // 0.5 inch = 720 twentieths of a point
+                        right: 720,
+                        bottom: 720,
+                        left: 720
                     },
                     // LANDSCAPE ORIENTATION
                     pageSize: {
                         orientation: docx.PageOrientation.LANDSCAPE,
-                        width: 15840,  // A4 landscape width (11 inches)
-                        height: 12240  // A4 landscape height (8.5 inches)
+                        width: 15840,  // A4 landscape width
+                        height: 12240  // A4 landscape height
                     }
                 }
             },
@@ -361,10 +403,13 @@ async function createDocument(data) {
                                     size: 6
                                 }
                             },
-                            spacing: { before: 100, after: 100 }
+                            spacing: { after: 50 }
                         }),
                         new docx.Paragraph({
                             children: [
+                                new docx.TextRun({
+                                    text: "\t"
+                                }),
                                 new docx.TextRun({
                                     text: "Cordoba Research Group Internal Information",
                                     size: 16, // 8pt
@@ -372,7 +417,7 @@ async function createDocument(data) {
                                     italics: true
                                 }),
                                 new docx.TextRun({
-                                    text: "\t\t\t\t\t\t"
+                                    text: "\t"
                                 }),
                                 new docx.TextRun({
                                     children: ["Page ", docx.PageNumber.CURRENT, " of ", docx.PageNumber.TOTAL_PAGES],
@@ -381,15 +426,14 @@ async function createDocument(data) {
                                     italics: true
                                 })
                             ],
-                            alignment: docx.AlignmentType.JUSTIFIED,
                             tabStops: [
                                 {
                                     type: docx.TabStopType.CENTER,
-                                    position: docx.TabStopPosition.CENTER
+                                    position: 5000
                                 },
                                 {
                                     type: docx.TabStopType.RIGHT,
-                                    position: docx.TabStopPosition.MAX
+                                    position: 10000
                                 }
                             ]
                         })
@@ -416,23 +460,24 @@ async function createDocument(data) {
                 // Analysis and Commentary
                 new docx.Paragraph({
                     text: "Analysis and Commentary",
-                    heading: docx.HeadingLevel.HEADING_2,
                     bold: true,
                     size: 24, // 12pt
-                    spacing: { after: 200 }
+                    spacing: { after: 200 },
+                    color: "000000"
                 }),
+                ...analysisParagraphs,
+                
                 new docx.Paragraph({
-                    text: analysis,
-                    spacing: { after: 300 }
+                    spacing: { after: 200 }
                 }),
                 
                 // Key Takeaways
                 new docx.Paragraph({
                     text: "Key Takeaways",
-                    heading: docx.HeadingLevel.HEADING_2,
                     bold: true,
                     size: 24,
-                    spacing: { after: 200 }
+                    spacing: { after: 200 },
+                    color: "000000"
                 }),
                 ...takeawayBullets,
                 
@@ -443,10 +488,10 @@ async function createDocument(data) {
                 // Content
                 new docx.Paragraph({
                     text: "Content",
-                    heading: docx.HeadingLevel.HEADING_2,
                     bold: true,
                     size: 24,
-                    spacing: { after: 200 }
+                    spacing: { after: 200 },
+                    color: "000000"
                 }),
                 ...contentParagraphs,
                 
@@ -454,10 +499,10 @@ async function createDocument(data) {
                 ...(imageParagraphs.length > 0 ? [
                     new docx.Paragraph({
                         text: "Figures and Charts",
-                        heading: docx.HeadingLevel.HEADING_2,
                         bold: true,
                         size: 24,
-                        spacing: { before: 400, after: 200 }
+                        spacing: { before: 400, after: 200 },
+                        color: "000000"
                     }),
                     ...imageParagraphs
                 ] : [])
