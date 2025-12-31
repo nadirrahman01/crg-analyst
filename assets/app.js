@@ -27,7 +27,7 @@ function removeCoAuthor(id) {
     }
 }
 
-// Format date and time - MOVED UP BEFORE IT'S USED
+// Format date and time
 function formatDateTime(date) {
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 
                    'July', 'August', 'September', 'October', 'November', 'December'];
@@ -44,7 +44,7 @@ function formatDateTime(date) {
     return `${month} ${day}, ${year} ${hours}:${minutes} ${ampm}`;
 }
 
-// Process and add images - MOVED UP BEFORE createDocument
+// Process and add images
 async function addImages(files) {
     const imageParagraphs = [];
     
@@ -106,6 +106,7 @@ async function createDocument(data) {
         analysis,
         keyTakeaways,
         content,
+        cordobaView,
         imageFiles,
         dateTimeString
     } = data;
@@ -147,6 +148,21 @@ async function createDocument(data) {
     // Process content into paragraphs - preserve empty lines
     const contentLines = content.split('\n');
     const contentParagraphs = contentLines.map(line => {
+        if (line.trim() === '') {
+            return new docx.Paragraph({
+                text: "",
+                spacing: { after: 150 }
+            });
+        }
+        return new docx.Paragraph({
+            text: line,
+            spacing: { after: 150 }
+        });
+    });
+    
+    // Process Cordoba View into paragraphs - preserve empty lines
+    const cordobaViewLines = cordobaView.split('\n');
+    const cordobaViewParagraphs = cordobaViewLines.map(line => {
         if (line.trim() === '') {
             return new docx.Paragraph({
                 text: "",
@@ -271,6 +287,99 @@ async function createDocument(data) {
         ]
     });
     
+    // Build document children array
+    const documentChildren = [
+        // Info table (Title + Topic on left, Authors on right)
+        infoTable,
+        
+        // Horizontal line after info section
+        new docx.Paragraph({
+            border: {
+                bottom: {
+                    color: "000000",
+                    space: 1,
+                    style: docx.BorderStyle.SINGLE,
+                    size: 6
+                }
+            },
+            spacing: { after: 300 }
+        }),
+        
+        // KEY TAKEAWAYS HEADING
+        new docx.Paragraph({
+            children: [
+                new docx.TextRun({
+                    text: "Key Takeaways",
+                    bold: true,
+                    size: 24, // 12pt
+                    font: "Book Antiqua"
+                })
+            ],
+            spacing: { after: 200 }
+        }),
+        ...takeawayBullets,
+        
+        new docx.Paragraph({
+            spacing: { after: 300 }
+        }),
+        
+        // ANALYSIS AND COMMENTARY HEADING
+        new docx.Paragraph({
+            children: [
+                new docx.TextRun({
+                    text: "Analysis and Commentary",
+                    bold: true,
+                    size: 24, // 12pt
+                    font: "Book Antiqua"
+                })
+            ],
+            spacing: { after: 200 }
+        }),
+        ...analysisParagraphs,
+        
+        // Additional content flows here
+        ...contentParagraphs
+    ];
+    
+    // Add The Cordoba View section if content exists
+    if (cordobaView.trim()) {
+        documentChildren.push(
+            new docx.Paragraph({
+                spacing: { after: 300 }
+            }),
+            new docx.Paragraph({
+                children: [
+                    new docx.TextRun({
+                        text: "The Cordoba View",
+                        bold: true,
+                        size: 24, // 12pt
+                        font: "Book Antiqua"
+                    })
+                ],
+                spacing: { after: 200 }
+            }),
+            ...cordobaViewParagraphs
+        );
+    }
+    
+    // Add Figures and Charts section if images exist
+    if (imageParagraphs.length > 0) {
+        documentChildren.push(
+            new docx.Paragraph({
+                children: [
+                    new docx.TextRun({
+                        text: "Figures and Charts",
+                        bold: true,
+                        size: 24, // 12pt
+                        font: "Book Antiqua"
+                    })
+                ],
+                spacing: { before: 400, after: 200 }
+            }),
+            ...imageParagraphs
+        );
+    }
+    
     // Create document with LANDSCAPE orientation and NARROW margins (0.5 inch)
     const doc = new docx.Document({
         styles: {
@@ -381,74 +490,7 @@ async function createDocument(data) {
                     ]
                 })
             },
-            children: [
-                // Info table (Title + Topic on left, Authors on right)
-                infoTable,
-                
-                // Horizontal line after info section
-                new docx.Paragraph({
-                    border: {
-                        bottom: {
-                            color: "000000",
-                            space: 1,
-                            style: docx.BorderStyle.SINGLE,
-                            size: 6
-                        }
-                    },
-                    spacing: { after: 300 }
-                }),
-                
-                // KEY TAKEAWAYS HEADING - NOW PROPERLY BOLD
-                new docx.Paragraph({
-                    children: [
-                        new docx.TextRun({
-                            text: "Key Takeaways",
-                            bold: true,
-                            size: 24, // 12pt
-                            font: "Book Antiqua"
-                        })
-                    ],
-                    spacing: { after: 200 }
-                }),
-                ...takeawayBullets,
-                
-                new docx.Paragraph({
-                    spacing: { after: 300 }
-                }),
-                
-                // ANALYSIS AND COMMENTARY HEADING - NOW PROPERLY BOLD
-                new docx.Paragraph({
-                    children: [
-                        new docx.TextRun({
-                            text: "Analysis and Commentary",
-                            bold: true,
-                            size: 24, // 12pt
-                            font: "Book Antiqua"
-                        })
-                    ],
-                    spacing: { after: 200 }
-                }),
-                ...analysisParagraphs,
-                
-                // Additional content flows here
-                ...contentParagraphs,
-                
-                // FIGURES AND CHARTS HEADING - NOW PROPERLY BOLD
-                ...(imageParagraphs.length > 0 ? [
-                    new docx.Paragraph({
-                        children: [
-                            new docx.TextRun({
-                                text: "Figures and Charts",
-                                bold: true,
-                                size: 24, // 12pt
-                                font: "Book Antiqua"
-                            })
-                        ],
-                        spacing: { before: 400, after: 200 }
-                    }),
-                    ...imageParagraphs
-                ] : [])
-            ]
+            children: documentChildren
         }]
     });
     
@@ -488,6 +530,7 @@ document.getElementById('researchForm').addEventListener('submit', async functio
         const analysis = document.getElementById('analysis').value;
         const keyTakeaways = document.getElementById('keyTakeaways').value;
         const content = document.getElementById('content').value;
+        const cordobaView = document.getElementById('cordobaView').value;
         const imageFiles = document.getElementById('imageUpload').files;
         
         // Get current date and time
@@ -520,6 +563,7 @@ document.getElementById('researchForm').addEventListener('submit', async functio
             analysis,
             keyTakeaways,
             content,
+            cordobaView,
             imageFiles,
             dateTimeString
         });
