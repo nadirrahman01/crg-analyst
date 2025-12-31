@@ -1,9 +1,9 @@
-/* styles.css */
+/* assets/styles.css */
 
 /* ========== CSS Variables ========== */
 :root {
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
+    --primary-color: #1a365d;
+    --primary-hover: #2c5282;
     --secondary-color: #64748b;
     --background: #f8fafc;
     --surface: #ffffff;
@@ -26,8 +26,7 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    font-family: 'Book Antiqua', 'Palatino Linotype', 'Palatino', serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: var(--background);
@@ -39,7 +38,7 @@ body {
 
 /* ========== Container ========== */
 .container {
-    max-width: 800px;
+    max-width: 900px;
     margin: 0 auto;
     background: var(--surface);
     padding: 40px;
@@ -51,11 +50,11 @@ body {
 h1 {
     font-size: 2rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--primary-color);
     margin-bottom: 30px;
     text-align: center;
     padding-bottom: 20px;
-    border-bottom: 2px solid var(--border-color);
+    border-bottom: 3px solid var(--primary-color);
 }
 
 label {
@@ -74,7 +73,8 @@ form {
 }
 
 input[type="text"],
-textarea {
+textarea,
+select {
     width: 100%;
     padding: 12px 16px;
     font-size: 1rem;
@@ -87,21 +87,91 @@ textarea {
     outline: none;
 }
 
+select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
+    appearance: none;
+}
+
 input[type="text"]:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
 }
 
 input[type="text"]:hover,
-textarea:hover {
+textarea:hover,
+select:hover {
     border-color: var(--secondary-color);
 }
 
 textarea {
     resize: vertical;
-    min-height: 200px;
+    min-height: 120px;
     line-height: 1.6;
+}
+
+/* ========== Co-Authors Section ========== */
+#coAuthorsSection {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: var(--background);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+}
+
+.coauthor-entry {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.5fr auto;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 15px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.coauthor-entry input {
+    margin-top: 0;
+}
+
+.remove-coauthor {
+    padding: 8px 16px;
+    background-color: var(--error-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    height: 44px;
+    align-self: end;
+}
+
+.remove-coauthor:hover {
+    background-color: #dc2626;
+}
+
+.secondary-btn {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.secondary-btn:hover {
+    background-color: #475569;
 }
 
 /* ========== File Upload Styles ========== */
@@ -119,16 +189,15 @@ input[type="file"] {
 
 input[type="file"]:hover {
     border-color: var(--primary-color);
-    background-color: rgba(37, 99, 235, 0.05);
+    background-color: rgba(26, 54, 93, 0.05);
 }
 
 input[type="file"]:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
 }
 
-/* File input custom styling */
 input[type="file"]::file-selector-button {
     padding: 8px 16px;
     margin-right: 12px;
@@ -148,8 +217,8 @@ input[type="file"]::file-selector-button:hover {
 /* ========== Button Styles ========== */
 button[type="submit"] {
     margin-top: 30px;
-    padding: 14px 28px;
-    font-size: 1rem;
+    padding: 16px 32px;
+    font-size: 1.05rem;
     font-weight: 600;
     color: white;
     background-color: var(--primary-color);
@@ -189,10 +258,9 @@ button[type="submit"]:disabled {
     content: '';
     position: absolute;
     top: 50%;
-    left: 50%;
-    width: 20px;
-    height: 20px;
-    margin-left: 10px;
+    right: 20px;
+    width: 18px;
+    height: 18px;
     border: 3px solid rgba(255, 255, 255, 0.3);
     border-top-color: white;
     border-radius: 50%;
@@ -205,7 +273,7 @@ button[type="submit"]:disabled {
 
 /* ========== Success/Error Messages ========== */
 .message {
-    padding: 12px 16px;
+    padding: 16px 20px;
     margin-top: 20px;
     border-radius: var(--radius);
     font-size: 0.95rem;
@@ -216,45 +284,15 @@ button[type="submit"]:disabled {
 .message.success {
     background-color: rgba(16, 185, 129, 0.1);
     color: var(--success-color);
-    border: 1px solid var(--success-color);
+    border: 2px solid var(--success-color);
     display: block;
 }
 
 .message.error {
     background-color: rgba(239, 68, 68, 0.1);
     color: var(--error-color);
-    border: 1px solid var(--error-color);
+    border: 2px solid var(--error-color);
     display: block;
-}
-
-/* ========== Preview Section (Optional) ========== */
-.preview {
-    margin-top: 30px;
-    padding: 20px;
-    background-color: var(--background);
-    border-radius: var(--radius);
-    border: 1px solid var(--border-color);
-}
-
-.preview h3 {
-    font-size: 1.2rem;
-    margin-bottom: 10px;
-    color: var(--text-primary);
-}
-
-.preview-images {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.preview-images img {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
 }
 
 /* ========== Responsive Design ========== */
@@ -271,14 +309,15 @@ button[type="submit"]:disabled {
         font-size: 1.5rem;
     }
     
-    input[type="text"],
-    textarea,
-    button[type="submit"] {
-        font-size: 0.95rem;
+    .coauthor-entry {
+        grid-template-columns: 1fr;
     }
     
-    textarea {
-        min-height: 150px;
+    input[type="text"],
+    textarea,
+    select,
+    button[type="submit"] {
+        font-size: 0.95rem;
     }
 }
 
@@ -290,30 +329,10 @@ button[type="submit"]:disabled {
     h1 {
         font-size: 1.3rem;
     }
-    
-    input[type="file"]::file-selector-button {
-        padding: 6px 12px;
-        font-size: 0.85rem;
-    }
 }
 
 /* ========== Accessibility ========== */
 *:focus-visible {
     outline: 2px solid var(--primary-color);
     outline-offset: 2px;
-}
-
-/* ========== Print Styles ========== */
-@media print {
-    body {
-        background: white;
-    }
-    
-    .container {
-        box-shadow: none;
-    }
-    
-    button {
-        display: none;
-    }
 }
