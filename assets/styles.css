@@ -352,91 +352,97 @@ input[type="file"]::file-selector-button{
 }
 
 /* =========================
-   Footer (CRG)
+   Bottom bar footer (GME-style)
    ========================= */
-.crg-footer{
-  margin-top: 22px;
-  padding-top: 18px;
-  border-top: 1px solid rgba(154,105,15,.22);
+.crg-bottom-bar{
+  margin-top: 18px;
+  border-top: 1px solid rgba(11,14,20,.10);
+  padding-top: 12px;
 }
 
-.crg-footer-top{
+.crg-bottom-inner{
   display:flex;
-  align-items:flex-start;
+  align-items:center;
   justify-content: space-between;
   gap: 16px;
+
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.75);
+  border: 1px solid rgba(11,14,20,.10);
+  box-shadow: 0 10px 22px rgba(11,14,20,.06);
 }
 
-.crg-footer-title{
-  font-family: var(--heading-font);
-  font-weight: 700;
-  font-size: 18px;
-  color: rgba(11,14,20,.88);
-}
-
-.crg-footer-subtitle{
-  margin-top: 6px;
+.crg-bottom-left{
+  display:flex;
+  align-items:center;
+  flex-wrap: wrap;
+  gap: 8px;
   font-size: 13px;
   color: rgba(11,14,20,.55);
 }
 
-.crg-footer-actions{
-  display:flex;
-  flex-direction: column;
-  align-items:flex-end;
-  gap: 10px;
-}
-
-/* Make footer primary button slightly smaller than main submit */
-.crg-footer-btn{
-  margin-top: 0 !important;
-  padding: 12px 20px;
-  font-size: 14px;
-  letter-spacing: .5px;
-}
-
-/* Simple text link */
-.crg-footer-link{
-  font-size: 13px;
+.crg-bottom-name{
   color: rgba(11,14,20,.70);
+  font-weight: 500;
+}
+
+.crg-bottom-version{
+  color: rgba(11,14,20,.70);
+  font-weight: 500;
+}
+
+.crg-bottom-badge{
+  color: rgba(11,14,20,.55);
+}
+
+.crg-bottom-copy{
+  color: rgba(11,14,20,.50);
+}
+
+.crg-sep{
+  opacity:.55;
+}
+
+.crg-bottom-right{
+  display:flex;
+  align-items:center;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  font-size: 13px;
+}
+
+.crg-bottom-right a{
+  color: rgba(11,14,20,.62);
   text-decoration: none;
-  border-bottom: 1px solid rgba(154,105,15,.22);
+  border-bottom: 1px solid rgba(11,14,20,.14);
   padding-bottom: 2px;
 }
 
-.crg-footer-link:hover{
-  color: rgba(11,14,20,.88);
-  border-bottom-color: rgba(154,105,15,.45);
+.crg-bottom-right a:hover{
+  color: rgba(11,14,20,.86);
+  border-bottom-color: rgba(154,105,15,.35);
 }
 
-.crg-footer-meta{
-  margin-top: 14px;
-  font-size: 12px;
-  color: rgba(11,14,20,.55);
-  display:flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items:center;
+/* "Publish note" styled like a subtle CTA link */
+.crg-bottom-cta{
+  border-bottom-color: rgba(154,105,15,.28) !important;
+  color: rgba(11,14,20,.72) !important;
 }
 
-.crg-dot{
-  opacity: .55;
-}
-
-.crg-footer-muted{
-  color: rgba(11,14,20,.48);
+.crg-bottom-cta:hover{
+  border-bottom-color: rgba(154,105,15,.55) !important;
 }
 
 @media (max-width: 768px){
-  .crg-footer-top{
+  .crg-bottom-inner{
     flex-direction: column;
-  }
-  .crg-footer-actions{
     align-items: flex-start;
-    width: 100%;
   }
-  .crg-footer-btn{
+  .crg-bottom-right{
     width: 100%;
-    text-align: center;
+    justify-content: flex-start;
+    gap: 12px;
   }
 }
