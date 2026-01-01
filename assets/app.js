@@ -119,7 +119,9 @@ window.addEventListener("DOMContentLoaded", () => {
   function linesToParagraphs(text, spacingAfter = 150) {
     const lines = (text || "").split("\n");
     return lines.map((line) => {
-      if (line.trim() === "") return new docx.Paragraph({ text: "", spacing: { after: spacingAfter } });
+      if (line.trim() === "") {
+        return new docx.Paragraph({ text: "", spacing: { after: spacingAfter } });
+      }
       return new docx.Paragraph({ text: line, spacing: { after: spacingAfter } });
     });
   }
@@ -172,8 +174,6 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   function extractStooqCSV(text) {
-    // When proxied, we may get extra wrapper lines.
-    // Find the real CSV header line "Date,Open,High,Low,Close,Volume"
     const lines = (text || "").split("\n").map(l => l.trim()).filter(Boolean);
     const headerIdx = lines.findIndex(l => l.toLowerCase().startsWith("date,open,high,low,close,volume"));
     if (headerIdx === -1) return null;
@@ -182,8 +182,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
   async function fetchStooqDaily(symbol) {
     const stooqUrl = `http://stooq.com/q/d/l/?s=${encodeURIComponent(symbol)}&i=d`;
-
-    // Primary: proxy to avoid CORS on static sites
     const proxyUrl = `https://r.jina.ai/${stooqUrl}`;
 
     const res = await fetch(proxyUrl, { cache: "no-store" });
@@ -195,7 +193,6 @@ window.addEventListener("DOMContentLoaded", () => {
     const lines = csvText.trim().split("\n");
     if (lines.length < 5) throw new Error("Not enough data returned. Check ticker.");
 
-    // Skip header
     const rows = lines.slice(1).map(line => line.split(","));
     const out = rows
       .map(r => ({ date: r[0], close: Number(r[4]) }))
@@ -272,7 +269,6 @@ window.addEventListener("DOMContentLoaded", () => {
         title: `${tickerVal.toUpperCase()} Close`
       });
 
-      // wait a tick so chart paints
       await new Promise(r => setTimeout(r, 150));
       priceChartImageBytes = canvasToPngBytes(priceChartCanvas);
 
@@ -334,7 +330,11 @@ window.addEventListener("DOMContentLoaded", () => {
             new docx.TableCell({
               children: [
                 new docx.Paragraph({
-                  children: [new docx.TextRun({ text: `${authorLastName.toUpperCase()}, ${authorFirstName.toUpperCase()} (${authorPhone})`, bold: true, size: 28 })],
+                  children: [new docx.TextRun({
+                    text: `${authorLastName.toUpperCase()}, ${authorFirstName.toUpperCase()} (${authorPhone})`,
+                    bold: true,
+                    size: 28
+                  })],
                   alignment: docx.AlignmentType.RIGHT,
                   spacing: { after: 100 }
                 })
@@ -362,12 +362,16 @@ window.addEventListener("DOMContentLoaded", () => {
             new docx.TableCell({
               children: coAuthors.length > 0
                 ? coAuthors.map(coAuthor =>
-                    new docx.Paragraph({
-                      children: [new docx.TextRun({ text: `${coAuthor.lastName.toUpperCase()}, ${coAuthor.firstName.toUpperCase()} (${coAuthor.phone})`, bold: true, size: 28 })],
-                      alignment: docx.AlignmentType.RIGHT,
-                      spacing: { after: 100 }
-                    })
-                  )
+                  new docx.Paragraph({
+                    children: [new docx.TextRun({
+                      text: `${coAuthor.lastName.toUpperCase()}, ${coAuthor.firstName.toUpperCase()} (${coAuthor.phone})`,
+                      bold: true,
+                      size: 28
+                    })],
+                    alignment: docx.AlignmentType.RIGHT,
+                    spacing: { after: 100 }
+                  })
+                )
                 : [new docx.Paragraph({ text: "" })],
               width: { size: 40, type: docx.WidthType.PERCENTAGE },
               verticalAlign: docx.VerticalAlign.TOP
@@ -385,6 +389,9 @@ window.addEventListener("DOMContentLoaded", () => {
       })
     ];
 
+    // ================================
+    // Equity block
+    // ================================
     if (noteType === "Equity Research") {
       const attachedModelNames = (modelFiles && modelFiles.length) ? Array.from(modelFiles).map(f => f.name) : [];
 
@@ -427,7 +434,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
       if (attachedModelNames.length) {
         attachedModelNames.forEach(name => {
-          documentChildren.push(new docx.Paragraph({ text: name, bullet: { level: 0 }, spacing: { after: 80 } }));
+          documentChildren.push(
+            new docx.Paragraph({ text: name, bullet: { level: 0 }, spacing: { after: 80 } })
+          );
         });
       } else {
         documentChildren.push(new docx.Paragraph({ text: "None uploaded", spacing: { after: 120 } }));
@@ -476,6 +485,9 @@ window.addEventListener("DOMContentLoaded", () => {
       documentChildren.push(new docx.Paragraph({ spacing: { after: 250 } }));
     }
 
+    // ================================
+    // Main sections
+    // ================================
     documentChildren.push(
       new docx.Paragraph({
         children: [new docx.TextRun({ text: "Key Takeaways", bold: true, size: 24, font: "Book Antiqua" })],
@@ -512,6 +524,9 @@ window.addEventListener("DOMContentLoaded", () => {
       );
     }
 
+    // ================================
+    // DOC: header + FOOTER restored
+    // ================================
     const doc = new docx.Document({
       styles: {
         default: {
@@ -532,10 +547,49 @@ window.addEventListener("DOMContentLoaded", () => {
           default: new docx.Header({
             children: [
               new docx.Paragraph({
-                children: [new docx.TextRun({ text: `Cordoba Research Group | ${data.noteType} | ${dateTimeString}`, size: 16, font: "Book Antiqua" })],
+                children: [
+                  new docx.TextRun({
+                    text: `Cordoba Research Group | ${noteType} | ${dateTimeString}`,
+                    size: 16,
+                    font: "Book Antiqua"
+                  })
+                ],
                 alignment: docx.AlignmentType.RIGHT,
                 spacing: { after: 100 },
                 border: { bottom: { color: "000000", space: 1, style: docx.BorderStyle.SINGLE, size: 6 } }
+              })
+            ]
+          })
+        },
+        footers: {
+          default: new docx.Footer({
+            children: [
+              new docx.Paragraph({
+                border: { top: { color: "000000", space: 1, style: docx.BorderStyle.SINGLE, size: 6 } },
+                spacing: { after: 0 }
+              }),
+              new docx.Paragraph({
+                children: [
+                  new docx.TextRun({ text: "\t" }),
+                  new docx.TextRun({
+                    text: "Cordoba Research Group Internal Information",
+                    size: 16,
+                    font: "Book Antiqua",
+                    italics: true
+                  }),
+                  new docx.TextRun({ text: "\t" }),
+                  new docx.TextRun({
+                    children: ["Page ", docx.PageNumber.CURRENT, " of ", docx.PageNumber.TOTAL_PAGES],
+                    size: 16,
+                    font: "Book Antiqua",
+                    italics: true
+                  })
+                ],
+                spacing: { before: 0, after: 0 },
+                tabStops: [
+                  { type: docx.TabStopType.CENTER, position: 5000 },
+                  { type: docx.TabStopType.RIGHT, position: 10000 }
+                ]
               })
             ]
           })
@@ -610,7 +664,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
       const blob = await docx.Packer.toBlob(doc);
 
-      const fileName = `${title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_${noteType.replace(/\s+/g, "_").toLowerCase()}.docx`;
+      const fileName =
+        `${title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_${noteType.replace(/\s+/g, "_").toLowerCase()}.docx`;
+
       saveAs(blob, fileName);
 
       messageDiv.className = "message success";
