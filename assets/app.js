@@ -512,99 +512,36 @@ window.addEventListener("DOMContentLoaded", () => {
       );
     }
 
-   sections: [{
-  properties: {
-    page: {
-      margin: {
-        top: 720,
-        right: 720,
-        bottom: 720,
-        left: 720
-      },
-      pageSize: {
-        orientation: docx.PageOrientation.LANDSCAPE,
-        width: 15840,
-        height: 12240
-      }
-    }
-  },
-
-  headers: {
-    default: new docx.Header({
-      children: [
-        new docx.Paragraph({
-          children: [
-            new docx.TextRun({
-              text: `Cordoba Research Group | ${noteType} | ${dateTimeString}`,
-              size: 16,
-              font: "Book Antiqua"
-            })
-          ],
-          alignment: docx.AlignmentType.RIGHT,
-          spacing: { after: 100 },
-          border: {
-            bottom: {
-              color: "000000",
-              style: docx.BorderStyle.SINGLE,
-              size: 6
-            }
+    const doc = new docx.Document({
+      styles: {
+        default: {
+          document: {
+            run: { font: "Book Antiqua", size: 20, color: "000000" },
+            paragraph: { spacing: { after: 150 } }
           }
-        })
-      ]
-    })
-  },
-
-  footers: {
-    default: new docx.Footer({
-      children: [
-
-        // top rule
-        new docx.Paragraph({
-          border: {
-            top: {
-              color: "000000",
-              style: docx.BorderStyle.SINGLE,
-              size: 6
-            }
-          },
-          spacing: { after: 80 }
-        }),
-
-        // footer content
-        new docx.Paragraph({
-          children: [
-            new docx.TextRun({
-              text: "Cordoba Research Group · Internal Research",
-              italics: true,
-              size: 16,
-              font: "Book Antiqua"
-            }),
-            new docx.TextRun({ text: "\t" }),
-            new docx.TextRun({
-              children: [
-                "Page ",
-                docx.PageNumber.CURRENT,
-                " of ",
-                docx.PageNumber.TOTAL_PAGES
-              ],
-              italics: true,
-              size: 16,
-              font: "Book Antiqua"
-            })
-          ],
-          tabStops: [
-            {
-              type: docx.TabStopType.RIGHT,
-              position: 10000
-            }
-          ]
-        })
-      ]
-    })
-  },
-
-  children: documentChildren
-}]
+        }
+      },
+      sections: [{
+        properties: {
+          page: {
+            margin: { top: 720, right: 720, bottom: 720, left: 720 },
+            pageSize: { orientation: docx.PageOrientation.LANDSCAPE, width: 15840, height: 12240 }
+          }
+        },
+        headers: {
+          default: new docx.Header({
+            children: [
+              new docx.Paragraph({
+                children: [new docx.TextRun({ text: `Cordoba Research Group | ${data.noteType} | ${dateTimeString}`, size: 16, font: "Book Antiqua" })],
+                alignment: docx.AlignmentType.RIGHT,
+                spacing: { after: 100 },
+                border: { bottom: { color: "000000", space: 1, style: docx.BorderStyle.SINGLE, size: 6 } }
+              })
+            ]
+          })
+        },
+        children: documentChildren
+      }]
     });
 
     return doc;
