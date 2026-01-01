@@ -350,3 +350,93 @@ input[type="file"]::file-selector-button{
 
   .btn-secondary{ width: 100%; }
 }
+
+/* =========================
+   Footer (CRG)
+   ========================= */
+.crg-footer{
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(154,105,15,.22);
+}
+
+.crg-footer-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.crg-footer-title{
+  font-family: var(--heading-font);
+  font-weight: 700;
+  font-size: 18px;
+  color: rgba(11,14,20,.88);
+}
+
+.crg-footer-subtitle{
+  margin-top: 6px;
+  font-size: 13px;
+  color: rgba(11,14,20,.55);
+}
+
+.crg-footer-actions{
+  display:flex;
+  flex-direction: column;
+  align-items:flex-end;
+  gap: 10px;
+}
+
+/* Make footer primary button slightly smaller than main submit */
+.crg-footer-btn{
+  margin-top: 0 !important;
+  padding: 12px 20px;
+  font-size: 14px;
+  letter-spacing: .5px;
+}
+
+/* Simple text link */
+.crg-footer-link{
+  font-size: 13px;
+  color: rgba(11,14,20,.70);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(154,105,15,.22);
+  padding-bottom: 2px;
+}
+
+.crg-footer-link:hover{
+  color: rgba(11,14,20,.88);
+  border-bottom-color: rgba(154,105,15,.45);
+}
+
+.crg-footer-meta{
+  margin-top: 14px;
+  font-size: 12px;
+  color: rgba(11,14,20,.55);
+  display:flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items:center;
+}
+
+.crg-dot{
+  opacity: .55;
+}
+
+.crg-footer-muted{
+  color: rgba(11,14,20,.48);
+}
+
+@media (max-width: 768px){
+  .crg-footer-top{
+    flex-direction: column;
+  }
+  .crg-footer-actions{
+    align-items: flex-start;
+    width: 100%;
+  }
+  .crg-footer-btn{
+    width: 100%;
+    text-align: center;
+  }
+}
