@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CRG - Research Documentation Tool</title>
   <link rel="stylesheet" href="assets/styles.css">
+
+  <!-- Chart.js (for price chart) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -68,6 +71,28 @@
         <label for="ticker">Ticker / Company</label>
         <input type="text" id="ticker" placeholder="e.g., MSFT (Microsoft)">
 
+        <!-- Price Chart Panel (NEW) -->
+        <div class="chart-panel">
+          <div class="chart-head">
+            <div class="chart-title">Price Chart</div>
+            <div class="chart-actions">
+              <select id="chartRange" class="chart-range">
+                <option value="6mo" selected>6M</option>
+                <option value="1y">1Y</option>
+                <option value="2y">2Y</option>
+                <option value="5y">5Y</option>
+              </select>
+              <button type="button" id="fetchPriceChart" class="btn btn-secondary">Fetch chart</button>
+            </div>
+          </div>
+
+          <div id="chartStatus" class="help-text" style="margin-top: 6px;"></div>
+
+          <div class="chart-wrap">
+            <canvas id="priceChart" height="140"></canvas>
+          </div>
+        </div>
+
         <label for="modelFiles">Upload Model Files (Excel / PDF) <span class="panel-muted">(Optional)</span></label>
         <p class="help-text"><em>Tip: Upload the Excel model (.xlsx/.xlsm) and any exported summary tabs as PDF if you have them.</em></p>
         <input type="file" id="modelFiles" multiple accept=".xlsx,.xlsm,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/pdf">
@@ -118,22 +143,9 @@ Shares: X"></textarea>
       <button type="submit" class="btn btn-primary">Generate Word Document</button>
     </form>
 
-<footer class="crg-bottom-bar">
-  <div class="crg-bottom-inner">
-    <div class="crg-bottom-left">
-      <span class="crg-bottom-name">Research Documentation Tool</span>
-      <span class="crg-sep">·</span>
-      <span class="crg-bottom-version">v1.0.0</span>
-      <span class="crg-sep">·</span>
-      <span class="crg-bottom-copy">© <span id="crgYear"></span> Cordoba Research Group</span>
-    </div>
+    <div id="message" class="message"></div>
 
-    <div class="crg-bottom-right">
-      <a href="https://cordobarg.com/" target="_blank" rel="noopener noreferrer">Cordoba Research Group Website</a>
-      <a href="https://cordobarg.com/" target="_blank" rel="noopener noreferrer" class="crg-bottom-cta">Publish note</a>
-    </div>
   </div>
-</footer>
 
   <!-- External Libraries -->
   <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
@@ -141,8 +153,5 @@ Shares: X"></textarea>
 
   <!-- Your JavaScript -->
   <script src="assets/app.js"></script>
-  <script>
-    document.getElementById('crgYear').textContent = new Date().getFullYear();
-  </script>
 </body>
 </html>
