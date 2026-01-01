@@ -1,219 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cordoba Research Group - Research Documentation Tool</title>
-  <link rel="stylesheet" href="assets/styles.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cordoba Research Group - Documentation Tool</title>
+    <link rel="stylesheet" href="assets/styles.css">
 </head>
-
 <body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <div class="brand">
-        <!-- Optional logo -->
-        <!-- <img src="assets/logo.png" class="brand-logo" alt="Cordoba Research Group" /> -->
-        <div class="brand-text">
-          <div class="brand-name">Cordoba Research Group</div>
-          <div class="brand-sub">Research Documentation Tool</div>
-        </div>
-      </div>
-
-      <div class="topbar-meta">
-        <span class="pill">Internal Tool</span>
-        <span class="pill pill-soft" id="nowLabel">—</span>
-      </div>
-    </div>
-  </header>
-
-  <main class="layout">
-    <!-- LEFT: FORM -->
-    <section class="panel panel-form">
-      <div class="panel-header">
-        <h1 class="panel-title">Create a Research Note</h1>
-        <p class="panel-desc">
-          Fill in the fields below. Preview updates live. Export to Word or PDF without breaking the note format.
-        </p>
-      </div>
-
-      <form id="researchForm" class="form">
-        <div class="field">
-          <label for="noteType">Type of Note</label>
-          <select id="noteType" required>
-            <option value="">Select note type...</option>
-            <option value="General Note">General Note</option>
-            <option value="Equity Research">Equity Research</option>
-            <option value="Macro Research">Macro Research</option>
-            <option value="Fixed Income Research">Fixed Income Research</option>
-            <option value="Commodity Insights">Commodity Insights</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="documentId">Document ID (auto-generated)</label>
-          <div class="inline">
-            <input type="text" id="documentId" readonly placeholder="Select note type to generate ID..." />
-            <button type="button" class="btn btn-ghost" id="regenDocId">Regenerate</button>
-          </div>
-          <div class="hint">Format: CRG-[TYPE]-YYYY-MM-### (sequence stored locally in your browser)</div>
-        </div>
-
-        <div class="field">
-          <label for="title">Title</label>
-          <input type="text" id="title" required placeholder="Enter research title..." />
-        </div>
-
-        <div class="field">
-          <label for="topic">Topic</label>
-          <input type="text" id="topic" required placeholder="Enter topic..." />
-        </div>
-
-        <div class="grid-2">
-          <div class="field">
-            <label for="authorLastName">Primary Author — Last Name</label>
-            <input type="text" id="authorLastName" required placeholder="e.g., Rahman" />
-          </div>
-          <div class="field">
-            <label for="authorFirstName">Primary Author — First Name</label>
-            <input type="text" id="authorFirstName" required placeholder="e.g., Nadir" />
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="authorPhone">Primary Author — Phone</label>
-          <input type="text" id="authorPhone" required placeholder="e.g., 44-7398344190" />
-        </div>
-
-        <!-- Co-Authors -->
-        <div class="block">
-          <div class="block-head">
-            <div>
-              <div class="block-title">Co-Authors (optional)</div>
-              <div class="block-sub">
-                If you add a co-author, all fields are required (same as the original behaviour).
-              </div>
+    <div class="container">
+        <h1>Cordoba Research Group<br><span style="font-size: 0.8em;">Research Documentation Tool</span></h1>
+        
+        <form id="researchForm">
+            <!-- Note Type -->
+            <label for="noteType">Type of Note:</label>
+            <select id="noteType" required>
+                <option value="">Select note type...</option>
+                <option value="General Note">General Note</option>
+                <option value="Equity Research">Equity Research</option>
+                <option value="Macro Research">Macro Research</option>
+                <option value="Fixed Income Research">Fixed Income Research</option>
+                <option value="Commodity Insights">Commodity Insights</option>
+            </select>
+            
+            <!-- Title -->
+            <label for="title">Title:</label>
+            <input type="text" id="title" required placeholder="Enter research title...">
+            
+            <!-- Topic -->
+            <label for="topic">Topic:</label>
+            <input type="text" id="topic" required placeholder="Enter topic...">
+            
+            <!-- Primary Author -->
+            <label for="authorLastName">Primary Author - Last Name:</label>
+            <input type="text" id="authorLastName" required placeholder="e.g., Rahman">
+            
+            <label for="authorFirstName">Primary Author - First Name:</label>
+            <input type="text" id="authorFirstName" required placeholder="e.g., Nadir">
+            
+            <label for="authorPhone">Primary Author - Phone:</label>
+            <input type="text" id="authorPhone" required placeholder="e.g., 44-7398344190">
+            
+            <!-- Co-Authors Section -->
+            <div id="coAuthorsSection">
+                <label>Co-Authors (Optional):</label>
+                <div id="coAuthorsList"></div>
+                <button type="button" id="addCoAuthor" class="secondary-btn">+ Add Co-Author</button>
             </div>
-            <button type="button" id="addCoAuthor" class="btn btn-secondary">+ Add Co-Author</button>
-          </div>
-          <div id="coAuthorsList" class="stack"></div>
-        </div>
-
-        <!-- House style -->
-        <div class="block">
-          <div class="block-head">
-            <div>
-              <div class="block-title">House Style</div>
-              <div class="block-sub">Only affects spacing/captions. Content remains unchanged.</div>
-            </div>
-          </div>
-
-          <div class="toggles">
-            <label class="toggle">
-              <input type="checkbox" id="tightSpacing" />
-              <span>Tighter spacing</span>
-            </label>
-            <label class="toggle">
-              <input type="checkbox" id="smallCaptions" />
-              <span>Smaller figure captions</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Key Takeaways -->
-        <div class="field">
-          <div class="label-row">
-            <label for="keyTakeaways">Key Takeaways</label>
-            <button type="button" id="convertBullets" class="btn btn-ghost btn-sm">Convert to bullets</button>
-          </div>
-          <textarea
-            id="keyTakeaways"
-            rows="6"
-            required
-            placeholder="Enter key takeaways (use bullet points with - or *)..."
-          ></textarea>
-          <div class="hint">Original behaviour preserved: empty lines remain empty lines in Word.</div>
-        </div>
-
-        <!-- Analysis -->
-        <div class="field">
-          <label for="analysis">Analysis and Commentary</label>
-          <textarea
-            id="analysis"
-            rows="8"
-            required
-            placeholder="Enter your analysis and commentary..."
-          ></textarea>
-          <div class="hint">
-            Smart paragraphing applied (double line breaks = new paragraph), while still preserving intentional blank lines.
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="content">Additional Content (optional)</label>
-          <textarea id="content" rows="8" placeholder="Enter any additional detailed content..."></textarea>
-        </div>
-
-        <div class="field">
-          <label for="cordobaView">The Cordoba View (optional)</label>
-          <textarea id="cordobaView" rows="6" placeholder="Enter Cordoba's perspective and recommendations..."></textarea>
-        </div>
-
-        <!-- Sources -->
-        <div class="block">
-          <div class="block-head">
-            <div>
-              <div class="block-title">Sources (optional)</div>
-              <div class="block-sub">Exports into Word as a numbered list.</div>
-            </div>
-            <button type="button" id="addSource" class="btn btn-secondary">+ Add Source</button>
-          </div>
-          <div id="sourcesList" class="stack"></div>
-        </div>
-
-        <!-- Image Upload -->
-        <div class="field">
-          <label for="imageUpload">Upload Images / Graphs (optional)</label>
-          <p class="hint">
-            Filename becomes caption. Example: <span class="mono">SP500_Performance_2024.png</span> → <span class="mono">Figure 1: SP500_Performance_2024</span>
-          </p>
-          <input type="file" id="imageUpload" multiple accept="image/*" />
-        </div>
-
-        <div class="actions">
-          <button type="submit" class="btn btn-primary" id="wordBtn">Generate Word Document</button>
-          <button type="button" class="btn btn-outline" id="pdfBtn">Export PDF</button>
-        </div>
-
+            
+            <!-- Key Takeaways -->
+            <label for="keyTakeaways">Key Takeaways:</label>
+            <textarea id="keyTakeaways" rows="6" required placeholder="Enter key takeaways (use bullet points with - or *)..."></textarea>
+            
+            <!-- Analysis and Commentary -->
+            <label for="analysis">Analysis and Commentary:</label>
+            <textarea id="analysis" rows="8" required placeholder="Enter your analysis and commentary..."></textarea>
+            
+            <!-- Additional Content -->
+            <label for="content">Additional Content (Optional):</label>
+            <textarea id="content" rows="10" placeholder="Enter any additional detailed content..."></textarea>
+            
+            <!-- The Cordoba View - NEW -->
+            <label for="cordobaView">The Cordoba View (Optional):</label>
+            <textarea id="cordobaView" rows="6" placeholder="Enter Cordoba's perspective and recommendations..."></textarea>
+            
+            <!-- Image Upload -->
+            <label for="imageUpload">Upload Images/Graphs (Optional):</label>
+            <p style="font-size: 0.9em; color: #64748b; margin-top: -10px; margin-bottom: 10px;">
+                <em>Note: The filename will be used as the figure caption in the document. Name your files accordingly (e.g., "SP500_Performance_2024.png" will appear as "Figure 1: SP500_Performance_2024").</em>
+            </p>
+            <input type="file" id="imageUpload" multiple accept="image/*">
+            
+            <button type="submit">Generate Word Document</button>
+        </form>
+        
         <div id="message" class="message"></div>
-      </form>
-    </section>
-
-    <!-- RIGHT: PREVIEW -->
-    <aside class="panel panel-preview">
-      <div class="panel-header">
-        <h2 class="panel-title">Live Preview</h2>
-        <p class="panel-desc">Mirrors the Word layout structure.</p>
-      </div>
-
-      <div id="preview" class="preview"></div>
-
-      <div class="preview-foot">
-        <div class="preview-foot-row">
-          <span class="muted">Header:</span>
-          <span class="mono" id="previewHeaderLine">Cordoba Research Group | — | —</span>
-        </div>
-        <div class="preview-foot-row">
-          <span class="muted">Footer:</span>
-          <span class="mono">Cordoba Research Group Internal Information · Page X of Y</span>
-        </div>
-      </div>
-    </aside>
-  </main>
-
-  <!-- External Libraries -->
-  <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
-  <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
-
-  <script src="assets/app.js"></script>
+    </div>
+    
+    <!-- External Libraries -->
+    <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
+    <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    
+    <!-- Your JavaScript -->
+    <script src="assets/app.js"></script>
 </body>
 </html>
