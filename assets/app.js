@@ -1,22 +1,21 @@
 // assets/app.js
-console.log('app.js loaded successfully');
+console.log("app.js loaded successfully");
 
-window.addEventListener('DOMContentLoaded', () => {
-
+window.addEventListener("DOMContentLoaded", () => {
   // ================================
   // Co-Author Management
   // ================================
   let coAuthorCount = 0;
 
-  const addCoAuthorBtn = document.getElementById('addCoAuthor');
-  const coAuthorsList = document.getElementById('coAuthorsList');
+  const addCoAuthorBtn = document.getElementById("addCoAuthor");
+  const coAuthorsList = document.getElementById("coAuthorsList");
 
   if (addCoAuthorBtn) {
-    addCoAuthorBtn.addEventListener('click', function () {
+    addCoAuthorBtn.addEventListener("click", function () {
       coAuthorCount++;
 
-      const coAuthorDiv = document.createElement('div');
-      coAuthorDiv.className = 'coauthor-entry';
+      const coAuthorDiv = document.createElement("div");
+      coAuthorDiv.className = "coauthor-entry";
       coAuthorDiv.id = `coauthor-${coAuthorCount}`;
       coAuthorDiv.innerHTML = `
         <input type="text" placeholder="Last Name" class="coauthor-lastname" required>
@@ -27,10 +26,10 @@ window.addEventListener('DOMContentLoaded', () => {
       coAuthorsList.appendChild(coAuthorDiv);
     });
 
-    document.addEventListener('click', (e) => {
-      const btn = e.target.closest('.remove-coauthor');
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest(".remove-coauthor");
       if (!btn) return;
-      const id = btn.getAttribute('data-remove-id');
+      const id = btn.getAttribute("data-remove-id");
       const coAuthorDiv = document.getElementById(`coauthor-${id}`);
       if (coAuthorDiv) coAuthorDiv.remove();
     });
@@ -39,34 +38,37 @@ window.addEventListener('DOMContentLoaded', () => {
   // ================================
   // Equity Research section toggle
   // ================================
-  const noteTypeEl = document.getElementById('noteType');
-  const equitySectionEl = document.getElementById('equitySection');
+  const noteTypeEl = document.getElementById("noteType");
+  const equitySectionEl = document.getElementById("equitySection");
 
   function toggleEquitySection() {
     if (!noteTypeEl || !equitySectionEl) return;
-    const isEquity = noteTypeEl.value === 'Equity Research';
-    equitySectionEl.style.display = isEquity ? 'block' : 'none';
+    const isEquity = noteTypeEl.value === "Equity Research";
+    equitySectionEl.style.display = isEquity ? "block" : "none";
   }
 
   if (noteTypeEl && equitySectionEl) {
-    noteTypeEl.addEventListener('change', toggleEquitySection);
+    noteTypeEl.addEventListener("change", toggleEquitySection);
     toggleEquitySection();
   } else {
-    console.warn('Equity toggle not wired. Missing #noteType or #equitySection in index.html');
+    console.warn("Equity toggle not wired. Missing #noteType or #equitySection in index.html");
   }
 
   // ================================
   // Date/time formatting
   // ================================
   function formatDateTime(date) {
-    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const months = [
+      "January","February","March","April","May","June",
+      "July","August","September","October","November","December"
+    ];
     const month = months[date.getMonth()];
     const day = date.getDate();
     const year = date.getFullYear();
 
     let hours = date.getHours();
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
     hours = hours % 12 || 12;
 
     return `${month} ${day}, ${year} ${hours}:${minutes} ${ampm}`;
@@ -115,14 +117,13 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function linesToParagraphs(text, spacingAfter = 150) {
-    const lines = (text || "").split('\n');
-    return lines.map(line => {
-      if (line.trim() === '') return new docx.Paragraph({ text: "", spacing: { after: spacingAfter } });
+    const lines = (text || "").split("\n");
+    return lines.map((line) => {
+      if (line.trim() === "") return new docx.Paragraph({ text: "", spacing: { after: spacingAfter } });
       return new docx.Paragraph({ text: line, spacing: { after: spacingAfter } });
     });
   }
 
-  // Create a clickable hyperlink run for external URLs
   function hyperlinkParagraph(label, url) {
     const safeUrl = (url || "").trim();
     if (!safeUrl) return null;
@@ -132,12 +133,7 @@ window.addEventListener('DOMContentLoaded', () => {
         new docx.TextRun({ text: label, bold: true }),
         new docx.TextRun({ text: " " }),
         new docx.ExternalHyperlink({
-          children: [
-            new docx.TextRun({
-              text: safeUrl,
-              style: "Hyperlink"
-            })
-          ],
+          children: [new docx.TextRun({ text: safeUrl, style: "Hyperlink" })],
           link: safeUrl
         })
       ],
@@ -147,6 +143,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // ================================
   // Price chart (Stooq -> Chart.js -> Word image)
+  // FIX: Stooq has no CORS. Use r.jina.ai proxy.
   // ================================
   let priceChart = null;
   let priceChartImageBytes = null;
@@ -157,11 +154,8 @@ window.addEventListener('DOMContentLoaded', () => {
   const priceChartCanvas = document.getElementById("priceChart");
 
   function stooqSymbolFromTicker(ticker) {
-    // Stooq format: lowercase; for US equities usually ".us"
-    // If user already includes a suffix (e.g., "7203.jp"), keep it.
     const t = (ticker || "").trim();
     if (!t) return null;
-
     if (t.includes(".")) return t.toLowerCase();
     return `${t.toLowerCase()}.us`;
   }
@@ -177,15 +171,31 @@ window.addEventListener('DOMContentLoaded', () => {
     return d;
   }
 
-  async function fetchStooqDaily(symbol) {
-    const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(symbol)}&i=d`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Could not fetch price data.");
+  function extractStooqCSV(text) {
+    // When proxied, we may get extra wrapper lines.
+    // Find the real CSV header line "Date,Open,High,Low,Close,Volume"
+    const lines = (text || "").split("\n").map(l => l.trim()).filter(Boolean);
+    const headerIdx = lines.findIndex(l => l.toLowerCase().startsWith("date,open,high,low,close,volume"));
+    if (headerIdx === -1) return null;
+    return lines.slice(headerIdx).join("\n");
+  }
 
-    const text = await res.text();
-    const lines = text.trim().split("\n");
+  async function fetchStooqDaily(symbol) {
+    const stooqUrl = `http://stooq.com/q/d/l/?s=${encodeURIComponent(symbol)}&i=d`;
+
+    // Primary: proxy to avoid CORS on static sites
+    const proxyUrl = `https://r.jina.ai/${stooqUrl}`;
+
+    const res = await fetch(proxyUrl, { cache: "no-store" });
+    if (!res.ok) throw new Error("Could not fetch price data (proxy blocked or down).");
+
+    const rawText = await res.text();
+    const csvText = extractStooqCSV(rawText) || rawText;
+
+    const lines = csvText.trim().split("\n");
     if (lines.length < 5) throw new Error("Not enough data returned. Check ticker.");
 
+    // Skip header
     const rows = lines.slice(1).map(line => line.split(","));
     const out = rows
       .map(r => ({ date: r[0], close: Number(r[4]) }))
@@ -273,9 +283,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  if (fetchChartBtn) {
-    fetchChartBtn.addEventListener("click", buildPriceChart);
-  }
+  if (fetchChartBtn) fetchChartBtn.addEventListener("click", buildPriceChart);
 
   // ================================
   // Create Word Document
@@ -288,16 +296,14 @@ window.addEventListener('DOMContentLoaded', () => {
       analysis, keyTakeaways, content, cordobaView,
       imageFiles, dateTimeString,
 
-      // equity fields
       ticker, valuationSummary, keyAssumptions, scenarioNotes, modelFiles, modelLink,
-      // chart image bytes
       priceChartImageBytes
     } = data;
 
-    const takeawayLines = (keyTakeaways || "").split('\n');
+    const takeawayLines = (keyTakeaways || "").split("\n");
     const takeawayBullets = takeawayLines.map(line => {
-      if (line.trim() === '') return new docx.Paragraph({ text: "", spacing: { after: 100 } });
-      const cleanLine = line.replace(/^[-*•]\s*/, '').trim();
+      if (line.trim() === "") return new docx.Paragraph({ text: "", spacing: { after: 100 } });
+      const cleanLine = line.replace(/^[-*•]\s*/, "").trim();
       return new docx.Paragraph({ text: cleanLine, bullet: { level: 0 }, spacing: { after: 100 } });
     });
 
@@ -307,7 +313,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const imageParagraphs = await addImages(imageFiles);
 
-    // title/topic/authors table
     const infoTable = new docx.Table({
       width: { size: 100, type: docx.WidthType.PERCENTAGE },
       borders: {
@@ -380,9 +385,6 @@ window.addEventListener('DOMContentLoaded', () => {
       })
     ];
 
-    // ================================
-    // Equity block (no extra heading)
-    // ================================
     if (noteType === "Equity Research") {
       const attachedModelNames = (modelFiles && modelFiles.length) ? Array.from(modelFiles).map(f => f.name) : [];
 
@@ -401,101 +403,59 @@ window.addEventListener('DOMContentLoaded', () => {
       const modelLinkPara = hyperlinkParagraph("Model link:", modelLink);
       if (modelLinkPara) documentChildren.push(modelLinkPara);
 
-      // Price Chart (if fetched)
+      // Price chart in doc (if fetched)
       if (priceChartImageBytes) {
         documentChildren.push(
           new docx.Paragraph({
-            children: [
-              new docx.TextRun({
-                text: "Price Chart",
-                bold: true,
-                size: 24, // 12pt
-                font: "Book Antiqua"
-              })
-            ],
+            children: [new docx.TextRun({ text: "Price Chart", bold: true, size: 24, font: "Book Antiqua" })],
             spacing: { before: 120, after: 120 }
           }),
           new docx.Paragraph({
-            children: [
-              new docx.ImageRun({
-                data: priceChartImageBytes,
-                transformation: { width: 650, height: 300 }
-              })
-            ],
+            children: [new docx.ImageRun({ data: priceChartImageBytes, transformation: { width: 650, height: 300 } })],
             alignment: docx.AlignmentType.CENTER,
             spacing: { after: 200 }
           })
         );
       }
 
-      // Attached model files heading (12pt)
       documentChildren.push(
         new docx.Paragraph({
-          children: [
-            new docx.TextRun({
-              text: "Attached model files:",
-              bold: true,
-              size: 24,
-              font: "Book Antiqua"
-            })
-          ],
+          children: [new docx.TextRun({ text: "Attached model files:", bold: true, size: 24, font: "Book Antiqua" })],
           spacing: { after: 120 }
         })
       );
 
       if (attachedModelNames.length) {
         attachedModelNames.forEach(name => {
-          documentChildren.push(
-            new docx.Paragraph({
-              text: name,
-              bullet: { level: 0 },
-              spacing: { after: 80 }
-            })
-          );
+          documentChildren.push(new docx.Paragraph({ text: name, bullet: { level: 0 }, spacing: { after: 80 } }));
         });
       } else {
         documentChildren.push(new docx.Paragraph({ text: "None uploaded", spacing: { after: 120 } }));
       }
 
-      // Valuation Summary (12pt)
       if ((valuationSummary || "").trim()) {
         documentChildren.push(
           new docx.Paragraph({
-            children: [
-              new docx.TextRun({
-                text: "Valuation Summary",
-                bold: true,
-                size: 24,
-                font: "Book Antiqua"
-              })
-            ],
+            children: [new docx.TextRun({ text: "Valuation Summary", bold: true, size: 24, font: "Book Antiqua" })],
             spacing: { before: 120, after: 100 }
           }),
           ...linesToParagraphs(valuationSummary, 120)
         );
       }
 
-      // Key Assumptions heading (12pt) + bullets
       if ((keyAssumptions || "").trim()) {
         documentChildren.push(
           new docx.Paragraph({
-            children: [
-              new docx.TextRun({
-                text: "Key Assumptions",
-                bold: true,
-                size: 24,
-                font: "Book Antiqua"
-              })
-            ],
+            children: [new docx.TextRun({ text: "Key Assumptions", bold: true, size: 24, font: "Book Antiqua" })],
             spacing: { before: 120, after: 100 }
           })
         );
 
-        keyAssumptions.split('\n').forEach(line => {
+        keyAssumptions.split("\n").forEach(line => {
           if (!line.trim()) return;
           documentChildren.push(
             new docx.Paragraph({
-              text: line.replace(/^[-*•]\s*/, '').trim(),
+              text: line.replace(/^[-*•]\s*/, "").trim(),
               bullet: { level: 0 },
               spacing: { after: 80 }
             })
@@ -503,7 +463,6 @@ window.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      // Scenario notes (optional)
       if ((scenarioNotes || "").trim()) {
         documentChildren.push(
           new docx.Paragraph({
@@ -517,7 +476,6 @@ window.addEventListener('DOMContentLoaded', () => {
       documentChildren.push(new docx.Paragraph({ spacing: { after: 250 } }));
     }
 
-    // Key Takeaways
     documentChildren.push(
       new docx.Paragraph({
         children: [new docx.TextRun({ text: "Key Takeaways", bold: true, size: 24, font: "Book Antiqua" })],
@@ -567,41 +525,17 @@ window.addEventListener('DOMContentLoaded', () => {
         properties: {
           page: {
             margin: { top: 720, right: 720, bottom: 720, left: 720 },
-            pageSize: {
-              orientation: docx.PageOrientation.LANDSCAPE,
-              width: 15840,
-              height: 12240
-            }
+            pageSize: { orientation: docx.PageOrientation.LANDSCAPE, width: 15840, height: 12240 }
           }
         },
         headers: {
           default: new docx.Header({
             children: [
               new docx.Paragraph({
-                children: [new docx.TextRun({ text: `Cordoba Research Group | ${noteType} | ${dateTimeString}`, size: 16, font: "Book Antiqua" })],
+                children: [new docx.TextRun({ text: `Cordoba Research Group | ${data.noteType} | ${dateTimeString}`, size: 16, font: "Book Antiqua" })],
                 alignment: docx.AlignmentType.RIGHT,
                 spacing: { after: 100 },
                 border: { bottom: { color: "000000", space: 1, style: docx.BorderStyle.SINGLE, size: 6 } }
-              })
-            ]
-          })
-        },
-        footers: {
-          default: new docx.Footer({
-            children: [
-              new docx.Paragraph({ border: { top: { color: "000000", space: 1, style: docx.BorderStyle.SINGLE, size: 6 } }, spacing: { after: 0 } }),
-              new docx.Paragraph({
-                children: [
-                  new docx.TextRun({ text: "\t" }),
-                  new docx.TextRun({ text: "Cordoba Research Group", size: 16, font: "Book Antiqua", italics: true }),
-                  new docx.TextRun({ text: "\t" }),
-                  new docx.TextRun({ children: ["Page ", docx.PageNumber.CURRENT, " of ", docx.PageNumber.TOTAL_PAGES], size: 16, font: "Book Antiqua", italics: true })
-                ],
-                spacing: { before: 0, after: 0 },
-                tabStops: [
-                  { type: docx.TabStopType.CENTER, position: 5000 },
-                  { type: docx.TabStopType.RIGHT, position: 10000 }
-                ]
               })
             ]
           })
@@ -616,52 +550,51 @@ window.addEventListener('DOMContentLoaded', () => {
   // ================================
   // Main Form Submission
   // ================================
-  const form = document.getElementById('researchForm');
+  const form = document.getElementById("researchForm");
 
-  form.addEventListener('submit', async function (e) {
+  form.addEventListener("submit", async function (e) {
     e.preventDefault();
 
     const button = form.querySelector('button[type="submit"]');
-    const messageDiv = document.getElementById('message');
+    const messageDiv = document.getElementById("message");
 
     button.disabled = true;
-    button.classList.add('loading');
-    button.textContent = 'Generating Document...';
-    messageDiv.className = 'message';
-    messageDiv.textContent = '';
+    button.classList.add("loading");
+    button.textContent = "Generating Document...";
+    messageDiv.className = "message";
+    messageDiv.textContent = "";
 
     try {
-      if (typeof docx === 'undefined') throw new Error('docx library not loaded. Please refresh the page.');
-      if (typeof saveAs === 'undefined') throw new Error('FileSaver library not loaded. Please refresh the page.');
+      if (typeof docx === "undefined") throw new Error("docx library not loaded. Please refresh the page.");
+      if (typeof saveAs === "undefined") throw new Error("FileSaver library not loaded. Please refresh the page.");
 
-      const noteType = document.getElementById('noteType').value;
-      const title = document.getElementById('title').value;
-      const topic = document.getElementById('topic').value;
-      const authorLastName = document.getElementById('authorLastName').value;
-      const authorFirstName = document.getElementById('authorFirstName').value;
-      const authorPhone = document.getElementById('authorPhone').value;
-      const analysis = document.getElementById('analysis').value;
-      const keyTakeaways = document.getElementById('keyTakeaways').value;
-      const content = document.getElementById('content').value;
-      const cordobaView = document.getElementById('cordobaView').value;
-      const imageFiles = document.getElementById('imageUpload').files;
+      const noteType = document.getElementById("noteType").value;
+      const title = document.getElementById("title").value;
+      const topic = document.getElementById("topic").value;
+      const authorLastName = document.getElementById("authorLastName").value;
+      const authorFirstName = document.getElementById("authorFirstName").value;
+      const authorPhone = document.getElementById("authorPhone").value;
+      const analysis = document.getElementById("analysis").value;
+      const keyTakeaways = document.getElementById("keyTakeaways").value;
+      const content = document.getElementById("content").value;
+      const cordobaView = document.getElementById("cordobaView").value;
+      const imageFiles = document.getElementById("imageUpload").files;
 
-      // Equity fields
-      const ticker = document.getElementById('ticker') ? document.getElementById('ticker').value : "";
-      const valuationSummary = document.getElementById('valuationSummary') ? document.getElementById('valuationSummary').value : "";
-      const keyAssumptions = document.getElementById('keyAssumptions') ? document.getElementById('keyAssumptions').value : "";
-      const scenarioNotes = document.getElementById('scenarioNotes') ? document.getElementById('scenarioNotes').value : "";
-      const modelFiles = document.getElementById('modelFiles') ? document.getElementById('modelFiles').files : null;
-      const modelLink = document.getElementById('modelLink') ? document.getElementById('modelLink').value : "";
+      const ticker = document.getElementById("ticker") ? document.getElementById("ticker").value : "";
+      const valuationSummary = document.getElementById("valuationSummary") ? document.getElementById("valuationSummary").value : "";
+      const keyAssumptions = document.getElementById("keyAssumptions") ? document.getElementById("keyAssumptions").value : "";
+      const scenarioNotes = document.getElementById("scenarioNotes") ? document.getElementById("scenarioNotes").value : "";
+      const modelFiles = document.getElementById("modelFiles") ? document.getElementById("modelFiles").files : null;
+      const modelLink = document.getElementById("modelLink") ? document.getElementById("modelLink").value : "";
 
       const now = new Date();
       const dateTimeString = formatDateTime(now);
 
       const coAuthors = [];
-      document.querySelectorAll('.coauthor-entry').forEach(entry => {
-        const lastName = entry.querySelector('.coauthor-lastname').value;
-        const firstName = entry.querySelector('.coauthor-firstname').value;
-        const phone = entry.querySelector('.coauthor-phone').value;
+      document.querySelectorAll(".coauthor-entry").forEach(entry => {
+        const lastName = entry.querySelector(".coauthor-lastname").value;
+        const firstName = entry.querySelector(".coauthor-firstname").value;
+        const phone = entry.querySelector(".coauthor-phone").value;
         if (lastName && firstName && phone) coAuthors.push({ lastName, firstName, phone });
       });
 
@@ -671,49 +604,25 @@ window.addEventListener('DOMContentLoaded', () => {
         coAuthors,
         analysis, keyTakeaways, content, cordobaView,
         imageFiles, dateTimeString,
-
         ticker, valuationSummary, keyAssumptions, scenarioNotes, modelFiles, modelLink,
-
-        // chart image bytes if user fetched it
         priceChartImageBytes
       });
 
       const blob = await docx.Packer.toBlob(doc);
 
-      const fileName =
-        `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${noteType.replace(/\s+/g, '_').toLowerCase()}.docx`;
-
+      const fileName = `${title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}_${noteType.replace(/\s+/g, "_").toLowerCase()}.docx`;
       saveAs(blob, fileName);
 
-      messageDiv.className = 'message success';
+      messageDiv.className = "message success";
       messageDiv.textContent = `✓ Document "${fileName}" generated successfully!`;
-
-      setTimeout(() => {
-        if (confirm('Document generated! Would you like to create another document?')) {
-          form.reset();
-          document.getElementById('coAuthorsList').innerHTML = '';
-          coAuthorCount = 0;
-          toggleEquitySection();
-
-          // reset chart state
-          priceChartImageBytes = null;
-          if (chartStatus) chartStatus.textContent = "";
-          if (priceChart) { priceChart.destroy(); priceChart = null; }
-
-          messageDiv.className = 'message';
-          messageDiv.textContent = '';
-        }
-      }, 1500);
-
     } catch (error) {
-      console.error('Error generating document:', error);
-      messageDiv.className = 'message error';
+      console.error("Error generating document:", error);
+      messageDiv.className = "message error";
       messageDiv.textContent = `✗ Error: ${error.message}`;
     } finally {
       button.disabled = false;
-      button.classList.remove('loading');
-      button.textContent = 'Generate Word Document';
+      button.classList.remove("loading");
+      button.textContent = "Generate Word Document";
     }
   });
-
 });
