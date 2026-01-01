@@ -302,7 +302,14 @@ window.addEventListener('DOMContentLoaded', () => {
       if ((valuationSummary || "").trim()) {
         documentChildren.push(
           new docx.Paragraph({
-            children: [new docx.TextRun({ text: "Valuation Summary", bold: true })],
+            children: [
+              new docx.TextRun({
+                text: "Valuation Summary",
+                bold: true,
+                size: 24,          // 12pt
+                font: "Book Antiqua"
+              })
+            ],
             spacing: { before: 120, after: 100 }
           }),
           ...linesToParagraphs(valuationSummary, 120)
