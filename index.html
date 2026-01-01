@@ -8,102 +8,174 @@
   <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Cordoba Research Group<br><span style="font-size: 0.8em;">Research Documentation Tool</span></h1>
+  <div class="page">
+    <div class="container">
 
-    <form id="researchForm">
-      <!-- Note Type -->
-      <label for="noteType">Type of Note:</label>
-      <select id="noteType" required>
-        <option value="">Select note type...</option>
-        <option value="General Note">General Note</option>
-        <option value="Equity Research">Equity Research</option>
-        <option value="Macro Research">Macro Research</option>
-        <option value="Fixed Income Research">Fixed Income Research</option>
-        <option value="Commodity Insights">Commodity Insights</option>
-      </select>
+      <!-- Brand header -->
+      <header class="brand">
+        <!-- Optional: drop your logo into /assets/logo.png and uncomment -->
+        <!-- <img class="brand-logo" src="assets/logo.png" alt="Cordoba Research Group"> -->
+        <div class="brand-text">
+          <h1 class="brand-title">Cordoba Research Group</h1>
+          <p class="brand-subtitle">Research Documentation Tool</p>
+        </div>
+        <div class="brand-chip">Internal</div>
+      </header>
 
-      <!-- Title -->
-      <label for="title">Title:</label>
-      <input type="text" id="title" required placeholder="Enter research title...">
-
-      <!-- Topic -->
-      <label for="topic">Topic:</label>
-      <input type="text" id="topic" required placeholder="Enter topic...">
-
-      <!-- Primary Author -->
-      <label for="authorLastName">Primary Author - Last Name:</label>
-      <input type="text" id="authorLastName" required placeholder="e.g., Rahman">
-
-      <label for="authorFirstName">Primary Author - First Name:</label>
-      <input type="text" id="authorFirstName" required placeholder="e.g., Nadir">
-
-      <label for="authorPhone">Primary Author - Phone:</label>
-      <input type="text" id="authorPhone" required placeholder="e.g., 44-7398344190">
-
-      <!-- Co-Authors Section -->
-      <div id="coAuthorsSection">
-        <label>Co-Authors (Optional):</label>
-        <div id="coAuthorsList"></div>
-        <button type="button" id="addCoAuthor" class="secondary-btn">+ Add Co-Author</button>
-      </div>
-
-      <!-- Equity Research: Model & Valuation Attachments (NEW) -->
-      <div id="equitySection" class="equity-section" style="display:none;">
-        <div class="equity-header">
-          <div class="equity-title">Equity Research — Model & Valuation</div>
-          <div class="equity-subtitle">Attach your DCF / Excel model, and capture the key valuation assumptions so the note is auditable.</div>
+      <form id="researchForm" class="form">
+        <!-- Note Type -->
+        <div class="field">
+          <label for="noteType">Type of Note</label>
+          <select id="noteType" required>
+            <option value="">Select note type...</option>
+            <option value="General Note">General Note</option>
+            <option value="Equity Research">Equity Research</option>
+            <option value="Macro Research">Macro Research</option>
+            <option value="Fixed Income Research">Fixed Income Research</option>
+            <option value="Commodity Insights">Commodity Insights</option>
+          </select>
         </div>
 
-        <label for="ticker">Ticker / Company:</label>
-        <input type="text" id="ticker" placeholder="e.g., MSFT (Microsoft)">
+        <!-- Title -->
+        <div class="field">
+          <label for="title">Title</label>
+          <input type="text" id="title" required placeholder="Enter research title...">
+        </div>
 
-        <label for="modelFiles">Upload Model Files (Excel / PDF) (Optional):</label>
-        <p style="font-size: 0.9em; color: #845F0F; margin-top: -10px; margin-bottom: 10px;">
-          <em>Tip: Upload the Excel model (.xlsx/.xlsm) and any exported summary tabs as PDF if you have them.</em>
-        </p>
-        <input type="file" id="modelFiles" multiple accept=".xlsx,.xlsm,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/pdf">
+        <!-- Topic -->
+        <div class="field">
+          <label for="topic">Topic</label>
+          <input type="text" id="topic" required placeholder="Enter topic...">
+        </div>
 
-        <label for="modelLink">Model Link (Drive / SharePoint) (Optional):</label>
-        <input type="text" id="modelLink" placeholder="Paste a share link to the model">
+        <!-- Primary Author -->
+        <div class="grid-3">
+          <div class="field">
+            <label for="authorLastName">Primary Author — Last Name</label>
+            <input type="text" id="authorLastName" required placeholder="e.g., Rahman">
+          </div>
 
-        <label for="valuationSummary">Valuation Summary (paste key outputs) (Optional):</label>
-        <textarea id="valuationSummary" rows="6" placeholder="Example: Base-case FV per share, current price, implied upside/downside, and 2–3 lines on the main driver(s)."></textarea>
+          <div class="field">
+            <label for="authorFirstName">Primary Author — First Name</label>
+            <input type="text" id="authorFirstName" required placeholder="e.g., Nadir">
+          </div>
 
-        <label for="keyAssumptions">Key Assumptions (one per line) (Optional):</label>
-        <textarea id="keyAssumptions" rows="7" placeholder="Example:\nWACC: 8.5%\nTerminal growth: 2.0%\nRevenue CAGR (5y): 7%\nEBIT margin (exit): 28%\nTax rate: 19%\nNet debt: £X\nShares: X"></textarea>
+          <div class="field">
+            <label for="authorPhone">Primary Author — Phone</label>
+            <input type="text" id="authorPhone" required placeholder="e.g., 44-7398344190">
+          </div>
+        </div>
 
-        <label for="scenarioNotes">Scenario / Sensitivity Notes (Optional):</label>
-        <textarea id="scenarioNotes" rows="5" placeholder="Example: What breaks the thesis? What is the bear/base/bull driver? Any sensitivity highlights (WACC / g / margin)?"></textarea>
-      </div>
+        <!-- Co-Authors Section -->
+        <section id="coAuthorsSection" class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Co-Authors</div>
+              <div class="panel-subtitle">Optional</div>
+            </div>
+            <button type="button" id="addCoAuthor" class="btn btn-secondary">+ Add Co-Author</button>
+          </div>
 
-      <!-- Key Takeaways -->
-      <label for="keyTakeaways">Key Takeaways:</label>
-      <textarea id="keyTakeaways" rows="6" required placeholder="Enter key takeaways (use bullet points with - or *)..."></textarea>
+          <div id="coAuthorsList"></div>
+        </section>
 
-      <!-- Analysis and Commentary -->
-      <label for="analysis">Analysis and Commentary:</label>
-      <textarea id="analysis" rows="8" required placeholder="Enter your analysis and commentary..."></textarea>
+        <!-- Equity Research: Model & Valuation Attachments -->
+        <section id="equitySection" class="panel panel-gold" style="display:none;">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Equity Research — Model & Valuation</div>
+              <div class="panel-subtitle">Attach your DCF / Excel model and capture assumptions so the note is auditable.</div>
+            </div>
+          </div>
 
-      <!-- Additional Content -->
-      <label for="content">Additional Content (Optional):</label>
-      <textarea id="content" rows="10" placeholder="Enter any additional detailed content..."></textarea>
+          <div class="field">
+            <label for="ticker">Ticker / Company</label>
+            <input type="text" id="ticker" placeholder="e.g., MSFT (Microsoft)">
+          </div>
 
-      <!-- The Cordoba View -->
-      <label for="cordobaView">The Cordoba View (Optional):</label>
-      <textarea id="cordobaView" rows="6" placeholder="Enter Cordoba's perspective and recommendations..."></textarea>
+          <div class="field">
+            <label for="modelFiles">Upload Model Files (Excel / PDF)</label>
+            <p class="help-text"><em>Tip: Upload the Excel model (.xlsx/.xlsm) and any exported summary tabs as PDF if you have them.</em></p>
+            <input type="file" id="modelFiles" multiple
+              accept=".xlsx,.xlsm,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,application/pdf">
+          </div>
 
-      <!-- Image Upload -->
-      <label for="imageUpload">Upload Images/Graphs (Optional):</label>
-      <p style="font-size: 0.9em; color: #845F0F; margin-top: -10px; margin-bottom: 10px;">
-        <em>Note: The filename will be used as the figure caption in the document. Name your files accordingly (e.g., "SP500_Performance_2024.png" will appear as "Figure 1: SP500_Performance_2024").</em>
-      </p>
-      <input type="file" id="imageUpload" multiple accept="image/*">
+          <div class="field">
+            <label for="modelLink">Model Link (Drive / SharePoint)</label>
+            <input type="text" id="modelLink" placeholder="Paste a share link to the model">
+          </div>
 
-      <button type="submit">Generate Word Document</button>
-    </form>
+          <div class="field">
+            <label for="valuationSummary">Valuation Summary (paste key outputs)</label>
+            <textarea id="valuationSummary" rows="6"
+              placeholder="Example: Base-case FV per share, current price, implied upside/downside, and 2–3 lines on the main driver(s)."></textarea>
+          </div>
 
-    <div id="message" class="message"></div>
+          <div class="field">
+            <label for="keyAssumptions">Key Assumptions (one per line)</label>
+            <textarea id="keyAssumptions" rows="7"
+              placeholder="Example:
+WACC: 8.5%
+Terminal growth: 2.0%
+Revenue CAGR (5y): 7%
+EBIT margin (exit): 28%
+Tax rate: 19%
+Net debt: £X
+Shares: X"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="scenarioNotes">Scenario / Sensitivity Notes</label>
+            <textarea id="scenarioNotes" rows="5"
+              placeholder="Example: What breaks the thesis? What is the bear/base/bull driver? Any sensitivity highlights (WACC / g / margin)?"></textarea>
+          </div>
+        </section>
+
+        <!-- Key Takeaways -->
+        <div class="field">
+          <label for="keyTakeaways">Key Takeaways</label>
+          <textarea id="keyTakeaways" rows="6" required placeholder="Enter key takeaways (use bullet points with - or *)..."></textarea>
+        </div>
+
+        <!-- Analysis and Commentary -->
+        <div class="field">
+          <label for="analysis">Analysis and Commentary</label>
+          <textarea id="analysis" rows="8" required placeholder="Enter your analysis and commentary..."></textarea>
+        </div>
+
+        <!-- Additional Content -->
+        <div class="field">
+          <label for="content">Additional Content (Optional)</label>
+          <textarea id="content" rows="10" placeholder="Enter any additional detailed content..."></textarea>
+        </div>
+
+        <!-- The Cordoba View -->
+        <div class="field">
+          <label for="cordobaView">The Cordoba View (Optional)</label>
+          <textarea id="cordobaView" rows="6" placeholder="Enter Cordoba's perspective and recommendations..."></textarea>
+        </div>
+
+        <!-- Image Upload -->
+        <div class="field">
+          <label for="imageUpload">Upload Images / Graphs (Optional)</label>
+          <p class="help-text">
+            <em>Note: the filename will be used as the figure caption in the document. Name your files accordingly.</em>
+          </p>
+          <input type="file" id="imageUpload" multiple accept="image/*">
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary">Generate Word Document</button>
+        </div>
+      </form>
+
+      <div id="message" class="message"></div>
+
+      <footer class="footer">
+        <div class="footer-line"></div>
+        <div class="footer-text">Cordoba Research Group · Internal Tooling</div>
+      </footer>
+    </div>
   </div>
 
   <!-- External Libraries -->
