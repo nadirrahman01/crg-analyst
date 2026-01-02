@@ -1,5 +1,6 @@
 // assets/app.js
-// NOTE: Only additions made (no removals). Adds: target price + current price + vol + range return + upside, and exports stats into the Word doc.
+// NOTE: Only additions made (no removals). Adds: target price + current price + vol + range return + upside,
+// AND adds: CRG Rating selector export into Word doc.
 
 console.log("app.js loaded successfully");
 
@@ -392,7 +393,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
       // NEW
       targetPrice,
-      equityStats
+      equityStats,
+
+      // NEW: rating
+      crgRating
     } = data;
 
     const takeawayLines = (keyTakeaways || "").split("\n");
@@ -501,7 +505,20 @@ window.addEventListener("DOMContentLoaded", () => {
               new docx.TextRun({ text: "Ticker / Company: ", bold: true }),
               new docx.TextRun({ text: ticker.trim() })
             ],
-            spacing: { after: 150 }
+            spacing: { after: 120 }
+          })
+        );
+      }
+
+      // NEW: Rating line (only if selected)
+      if ((crgRating || "").trim()) {
+        documentChildren.push(
+          new docx.Paragraph({
+            children: [
+              new docx.TextRun({ text: "CRG Rating: ", bold: true }),
+              new docx.TextRun({ text: crgRating.trim() })
+            ],
+            spacing: { after: 120 }
           })
         );
       }
@@ -524,7 +541,7 @@ window.addEventListener("DOMContentLoaded", () => {
         );
       }
 
-      // NEW: Market stats block (only if chart fetched)
+      // Market stats block (only if chart fetched)
       if (equityStats && equityStats.currentPrice) {
         const tp = (targetPrice || "").trim();
         const tpNum = safeNum(tp);
@@ -799,6 +816,9 @@ window.addEventListener("DOMContentLoaded", () => {
       // NEW
       const targetPrice = document.getElementById("targetPrice") ? document.getElementById("targetPrice").value : "";
 
+      // NEW: rating
+      const crgRating = document.getElementById("crgRating") ? document.getElementById("crgRating").value : "";
+
       const now = new Date();
       const dateTimeString = formatDateTime(now);
 
@@ -821,7 +841,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
         // NEW
         targetPrice,
-        equityStats
+        equityStats,
+
+        // NEW: rating
+        crgRating
       });
 
       const blob = await docx.Packer.toBlob(doc);
