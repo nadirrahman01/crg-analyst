@@ -441,12 +441,10 @@ input[type="file"]::file-selector-button{
 }
 
 /* =========================
-   Rating info popover (hover + focus)
+   Rating info popover (works even if label hover is flaky)
    ========================= */
 
-.rating-row{
-  margin-top: 14px;
-}
+.rating-row{ margin-top: 14px; }
 
 .rating-label{
   position: relative;
@@ -455,12 +453,19 @@ input[type="file"]::file-selector-button{
   gap: 8px;
 }
 
-.crg-rating-select{
-  margin-top: 8px;
+.crg-rating-select{ margin-top: 8px; }
+
+/* Ensure nothing clips the popover */
+.equity-section,
+.chart-panel,
+.panel,
+.container{
+  overflow: visible !important;
 }
 
 /* the little "i" */
 .info-badge{
+  position: relative;
   width: 22px;
   height: 22px;
   border-radius: 999px;
@@ -482,7 +487,7 @@ input[type="file"]::file-selector-button{
   left: 0;
   top: calc(100% + 10px);
   width: min(520px, calc(100vw - 56px));
-  padding: 14px 14px;
+  padding: 14px;
   border-radius: 18px;
 
   border: 1px solid rgba(11,14,20,.16);
@@ -493,21 +498,32 @@ input[type="file"]::file-selector-button{
   font-size: 13px;
   line-height: 1.5;
 
-  z-index: 50;
+  z-index: 9999;
 
   /* hidden by default */
   opacity: 0;
   visibility: hidden;
   transform: translateY(-4px);
+  pointer-events: none;
+
   transition: opacity .14s ease, transform .14s ease, visibility .14s ease;
 }
 
-/* show on hover OR keyboard focus */
-.rating-label:hover .info-pop,
-.rating-label:focus-within .info-pop{
+/* show when hovering the badge (primary) */
+.info-badge:hover + .info-pop{
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* show for keyboard users (tab onto the badge) */
+.info-badge:focus + .info-pop,
+.info-badge:focus-visible + .info-pop{
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 /* small arrow */
@@ -515,18 +531,11 @@ input[type="file"]::file-selector-button{
   content: "";
   position: absolute;
   top: -7px;
-  left: 16px;
+  left: 12px;
   width: 14px;
   height: 14px;
   background: #fff;
   border-left: 1px solid rgba(11,14,20,.16);
   border-top: 1px solid rgba(11,14,20,.16);
   transform: rotate(45deg);
-}
-
-/* on mobile, make it easier to tap */
-@media (max-width: 768px){
-  .info-badge{
-    cursor: pointer;
-  }
 }
