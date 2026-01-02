@@ -534,7 +534,7 @@ window.addEventListener("DOMContentLoaded", () => {
             spacing: { before: 120, after: 120 }
           }),
           new docx.Paragraph({
-            children: [new docx.ImageRun({ data: priceChartImageBytes, transformation: { width: 550, height: 200 } })],
+            children: [new docx.ImageRun({ data: priceChartImageBytes, transformation: { width: 650, height: 300 } })],
             alignment: docx.AlignmentType.CENTER,
             spacing: { after: 200 }
           })
