@@ -1,6 +1,7 @@
 // assets/app.js
 // NOTE: Only additions made (no removals). Adds: target price + current price + vol + range return + upside,
 // AND adds: CRG Rating selector export into Word doc.
+// AND adds: optional phones (outputs "(N/A)"), and other UX additions.
 
 console.log("app.js loaded successfully");
 
@@ -27,6 +28,10 @@ window.addEventListener("DOMContentLoaded", () => {
         <button type="button" class="remove-coauthor" data-remove-id="${coAuthorCount}">Remove</button>
       `;
       coAuthorsList.appendChild(coAuthorDiv);
+
+      // NEW: make phone optional even though HTML string has required
+      const phoneInput = coAuthorDiv.querySelector(".coauthor-phone");
+      if (phoneInput) phoneInput.required = false;
     });
 
     document.addEventListener("click", (e) => {
@@ -75,6 +80,21 @@ window.addEventListener("DOMContentLoaded", () => {
     hours = hours % 12 || 12;
 
     return `${month} ${day}, ${year} ${hours}:${minutes} ${ampm}`;
+  }
+
+  // ================================
+  // NEW: optional field helpers
+  // ================================
+  function naIfBlank(v) {
+    const s = (v ?? "").toString().trim();
+    return s ? s : "(N/A)";
+  }
+
+  function coAuthorLine(coAuthor) {
+    const ln = (coAuthor.lastName || "").toUpperCase();
+    const fn = (coAuthor.firstName || "").toUpperCase();
+    const ph = naIfBlank(coAuthor.phone);
+    return `${ln}, ${fn} (${ph})`;
   }
 
   // ================================
@@ -384,6 +404,8 @@ window.addEventListener("DOMContentLoaded", () => {
     const {
       noteType, title, topic,
       authorLastName, authorFirstName, authorPhone,
+      // NEW: safe phone (N/A if blank)
+      authorPhoneSafe,
       coAuthors,
       analysis, keyTakeaways, content, cordobaView,
       imageFiles, dateTimeString,
@@ -434,7 +456,7 @@ window.addEventListener("DOMContentLoaded", () => {
               children: [
                 new docx.Paragraph({
                   children: [new docx.TextRun({
-                    text: `${authorLastName.toUpperCase()}, ${authorFirstName.toUpperCase()} (${authorPhone})`,
+                    text: `${authorLastName.toUpperCase()}, ${authorFirstName.toUpperCase()} (${authorPhoneSafe || authorPhone})`,
                     bold: true,
                     size: 28
                   })],
@@ -467,7 +489,7 @@ window.addEventListener("DOMContentLoaded", () => {
                 ? coAuthors.map(coAuthor =>
                   new docx.Paragraph({
                     children: [new docx.TextRun({
-                      text: `${coAuthor.lastName.toUpperCase()}, ${coAuthor.firstName.toUpperCase()} (${coAuthor.phone})`,
+                      text: coAuthorLine(coAuthor),
                       bold: true,
                       size: 28
                     })],
@@ -510,7 +532,7 @@ window.addEventListener("DOMContentLoaded", () => {
         );
       }
 
-      // NEW: Rating line (only if selected)
+      // Rating line (only if selected)
       if ((crgRating || "").trim()) {
         documentChildren.push(
           new docx.Paragraph({
@@ -778,6 +800,9 @@ window.addEventListener("DOMContentLoaded", () => {
   // ================================
   const form = document.getElementById("researchForm");
 
+  // NEW: ensure browser validation doesn't block optional phone (even if HTML still has required)
+  if (form) form.noValidate = true;
+
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
 
@@ -799,7 +824,11 @@ window.addEventListener("DOMContentLoaded", () => {
       const topic = document.getElementById("topic").value;
       const authorLastName = document.getElementById("authorLastName").value;
       const authorFirstName = document.getElementById("authorFirstName").value;
+
       const authorPhone = document.getElementById("authorPhone").value;
+      // NEW
+      const authorPhoneSafe = naIfBlank(authorPhone);
+
       const analysis = document.getElementById("analysis").value;
       const keyTakeaways = document.getElementById("keyTakeaways").value;
       const content = document.getElementById("content").value;
@@ -827,12 +856,15 @@ window.addEventListener("DOMContentLoaded", () => {
         const lastName = entry.querySelector(".coauthor-lastname").value;
         const firstName = entry.querySelector(".coauthor-firstname").value;
         const phone = entry.querySelector(".coauthor-phone").value;
-        if (lastName && firstName && phone) coAuthors.push({ lastName, firstName, phone });
+        // NEW: phone optional; still require names
+        if (lastName && firstName) coAuthors.push({ lastName, firstName, phone: naIfBlank(phone) });
       });
 
       const doc = await createDocument({
         noteType, title, topic,
         authorLastName, authorFirstName, authorPhone,
+        // NEW
+        authorPhoneSafe,
         coAuthors,
         analysis, keyTakeaways, content, cordobaView,
         imageFiles, dateTimeString,
