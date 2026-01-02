@@ -39,7 +39,10 @@
         <div class="tool-info-text">
           Fill out the note fields, then click <strong>Generate Word Document</strong>.
           For <strong>Equity Research</strong>, the <strong>Ticker / Company</strong> field is optional — if a ticker isn’t available, leave it blank.
-          If you do add one, use a standard format like <strong>MSFT</strong> (US) or <strong>VOD.L</strong> (London).
+          This tool pulls price data using <strong>Stooq symbols</strong>: for US equities use <strong>MSFT.US</strong> (or just <strong>MSFT</strong>), and for UK/LSE equities use the <strong>.UK</strong> suffix, e.g. <strong>VOD.UK</strong>, <strong>BP.UK</strong>, <strong>HSBA.UK</strong>.
+          If you’re unsure, use Stooq’s search to confirm the symbol:
+          <a href="https://stooq.com/" target="_blank" rel="noopener noreferrer">stooq.com</a>
+          (type the company name/ticker in their search box).
           If you’ve built a model, it’s often easiest to upload <strong>screenshots of key model tabs</strong> in the <strong>Upload Images / Graphs</strong> section so the output note is auditable.
         </div>
       </div>
@@ -85,7 +88,7 @@
         </div>
 
         <label for="ticker">Ticker / Company <span class="panel-muted">(Optional)</span></label>
-        <input type="text" id="ticker" placeholder="e.g., MSFT (Microsoft) or VOD.L (London)">
+        <input type="text" id="ticker" placeholder="e.g., MSFT.US (US) or VOD.UK (UK/LSE)">
 
         <!-- NEW: CRG Rating (Equity Research) -->
         <div class="rating-row">
