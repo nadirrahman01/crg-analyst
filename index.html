@@ -1,4 +1,6 @@
 <!-- index.html -->
+<!-- NOTE: Only additions made (no removals). Adds target price + stats boxes under the price chart panel. -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -71,7 +73,7 @@
         <label for="ticker">Ticker / Company</label>
         <input type="text" id="ticker" placeholder="e.g., MSFT (Microsoft)">
 
-        <!-- Price Chart Panel (NEW) -->
+        <!-- Price Chart Panel (existing) -->
         <div class="chart-panel">
           <div class="chart-head">
             <div class="chart-title">Price Chart</div>
@@ -91,6 +93,33 @@
           <div class="chart-wrap">
             <canvas id="priceChart" height="140"></canvas>
           </div>
+
+          <!-- NEW: Target price + stats -->
+          <label for="targetPrice" style="margin-top: 14px;">Target Price <span class="panel-muted">(Optional)</span></label>
+          <input type="text" id="targetPrice" placeholder="e.g., 520">
+
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-label">Current Price</div>
+              <div class="metric-value" id="currentPrice">—</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-label">Volatility (ann.)</div>
+              <div class="metric-value" id="realisedVol">—</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-label">Return (range)</div>
+              <div class="metric-value" id="rangeReturn">—</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-label">Upside to Target</div>
+              <div class="metric-value" id="upsideToTarget">—</div>
+            </div>
+          </div>
+          <!-- /NEW -->
         </div>
 
         <label for="modelFiles">Upload Model Files (Excel / PDF) <span class="panel-muted">(Optional)</span></label>
