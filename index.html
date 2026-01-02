@@ -1,6 +1,7 @@
 <!-- index.html -->
 <!-- NOTE: Only additions made (no removals). Adds target price + stats boxes under the price chart panel,
-     and adds CRG Rating selector with an info popover (Equity Research only). -->
+     and adds CRG Rating selector with an info popover (Equity Research only).
+     AND adds: tool guidance info box + form novalidate. -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -20,7 +21,7 @@
       <h1 class="hero-title">CRG - Research Documentation Tool</h1>
     </header>
 
-    <form id="researchForm">
+    <form id="researchForm" novalidate>
       <!-- Note Type -->
       <label for="noteType">Type of Note</label>
       <select id="noteType" required>
@@ -31,6 +32,18 @@
         <option value="Fixed Income Research">Fixed Income Research</option>
         <option value="Commodity Insights">Commodity Insights</option>
       </select>
+
+      <!-- NEW: Tool guidance -->
+      <div class="tool-info">
+        <div class="tool-info-title">How to use this tool</div>
+        <div class="tool-info-text">
+          Fill out the note fields, then click <strong>Generate Word Document</strong>.
+          For <strong>Equity Research</strong>, the <strong>Ticker / Company</strong> field is optional — if a ticker isn’t available, leave it blank.
+          If you do add one, use a standard format like <strong>MSFT</strong> (US) or <strong>VOD.L</strong> (London).
+          If you’ve built a model, it’s often easiest to upload <strong>screenshots of key model tabs</strong> in the <strong>Upload Images / Graphs</strong> section so the output note is auditable.
+        </div>
+      </div>
+      <!-- /NEW -->
 
       <!-- Title -->
       <label for="title">Title</label>
@@ -47,7 +60,7 @@
       <label for="authorFirstName">Primary Author — First Name</label>
       <input type="text" id="authorFirstName" required placeholder="e.g., Nadir">
 
-      <label for="authorPhone">Primary Author — Phone</label>
+      <label for="authorPhone">Primary Author — Phone <span class="panel-muted">(Optional)</span></label>
       <input type="text" id="authorPhone" required placeholder="e.g., 44-7398344190">
 
       <!-- Co-Authors Section -->
@@ -71,8 +84,8 @@
           </div>
         </div>
 
-        <label for="ticker">Ticker / Company</label>
-        <input type="text" id="ticker" placeholder="e.g., MSFT (Microsoft)">
+        <label for="ticker">Ticker / Company <span class="panel-muted">(Optional)</span></label>
+        <input type="text" id="ticker" placeholder="e.g., MSFT (Microsoft) or VOD.L (London)">
 
         <!-- NEW: CRG Rating (Equity Research) -->
         <div class="rating-row">
