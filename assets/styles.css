@@ -217,6 +217,51 @@ input[type="file"]::file-selector-button{
   background: rgba(255,255,255,.92);
 }
 
+/* =========================
+   NEW: Phone row (country code small left + number right)
+   ========================= */
+.phone-row{
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.phone-country{
+  width: 170px;                 /* smaller left box */
+  min-width: 170px;
+  max-width: 190px;
+  border-radius: 22px;
+}
+
+.phone-number{
+  flex: 1;
+  border-radius: 22px;
+}
+
+/* compact version used inside co-author grid */
+.phone-row--compact{
+  gap: 10px;
+}
+.phone-row--compact .phone-country{
+  width: 120px;
+  min-width: 120px;
+  max-width: 140px;
+}
+.phone-row--compact .phone-number{
+  border-radius: 18px;
+}
+
+/* responsive */
+@media (max-width: 768px){
+  .phone-row{
+    flex-direction: column;
+  }
+  .phone-country{
+    width: 100%;
+    max-width: none;
+  }
+}
+
 /* Equity section */
 .equity-section{
   margin-top: 22px;
@@ -405,8 +450,6 @@ input[type="file"]::file-selector-button{
   .chart-range{ width: 100% !important; }
 }
 
-/* NOTE: Only additions made (no removals). Adds metrics grid/cards for Current Price, Vol, Return, Upside */
-
 .metrics-grid{
   display:grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -440,7 +483,7 @@ input[type="file"]::file-selector-button{
 }
 
 /* =========================
-   Rating info popover (works even if label hover is flaky)
+   Rating info popover
    ========================= */
 
 .rating-row{ margin-top: 14px; }
@@ -454,7 +497,6 @@ input[type="file"]::file-selector-button{
 
 .crg-rating-select{ margin-top: 8px; }
 
-/* Ensure nothing clips the popover */
 .equity-section,
 .chart-panel,
 .panel,
@@ -462,7 +504,6 @@ input[type="file"]::file-selector-button{
   overflow: visible !important;
 }
 
-/* the little "i" */
 .info-badge{
   position: relative;
   width: 22px;
@@ -480,7 +521,6 @@ input[type="file"]::file-selector-button{
   color: rgba(11,14,20,.85);
 }
 
-/* the popover itself */
 .info-pop{
   position: absolute;
   left: 0;
@@ -499,7 +539,6 @@ input[type="file"]::file-selector-button{
 
   z-index: 9999;
 
-  /* hidden by default */
   opacity: 0;
   visibility: hidden;
   transform: translateY(-4px);
@@ -508,7 +547,6 @@ input[type="file"]::file-selector-button{
   transition: opacity .14s ease, transform .14s ease, visibility .14s ease;
 }
 
-/* show when hovering the badge (primary) */
 .info-badge:hover + .info-pop{
   opacity: 1;
   visibility: visible;
@@ -516,7 +554,6 @@ input[type="file"]::file-selector-button{
   pointer-events: auto;
 }
 
-/* show for keyboard users (tab onto the badge) */
 .info-badge:focus + .info-pop,
 .info-badge:focus-visible + .info-pop{
   opacity: 1;
@@ -525,7 +562,6 @@ input[type="file"]::file-selector-button{
   pointer-events: auto;
 }
 
-/* small arrow */
 .info-pop::before{
   content: "";
   position: absolute;
@@ -539,16 +575,10 @@ input[type="file"]::file-selector-button{
   transform: rotate(45deg);
 }
 
-/* =========================
-   NEW: bigger Analysis textarea
-   ========================= */
 #analysis{
   min-height: 240px;
 }
 
-/* =========================
-   NEW: tool guidance info box
-   ========================= */
 .tool-info{
   margin-top: 14px;
   padding: 14px 16px;
@@ -572,9 +602,6 @@ input[type="file"]::file-selector-button{
   line-height: 1.55;
 }
 
-/* =========================
-   NEW: action buttons row
-   ========================= */
 .form-actions{
   display: flex;
   gap: 12px;
@@ -582,7 +609,6 @@ input[type="file"]::file-selector-button{
   margin-top: 18px;
 }
 
-/* keep existing button styling intact */
 .form-actions .btn{
   margin-top: 0 !important;
 }
@@ -595,25 +621,4 @@ input[type="file"]::file-selector-button{
   .form-actions .btn{
     width: 100%;
   }
-}
-
-/* =========================
-   NEW: phone formatting UI
-   ========================= */
-.phone-row{
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.country-code{
-  width: 100% !important;
-  border-radius: var(--radius-field);
-}
-
-/* Co-author row enhancement (when we inject the CC dropdown) */
-.coauthor-entry .country-code{
-  width: 100% !important;
 }
