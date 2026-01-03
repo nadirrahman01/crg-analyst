@@ -3,7 +3,8 @@
      and adds CRG Rating selector with an info popover (Equity Research only).
      AND adds: tool guidance info box + form novalidate.
      AND adds: Email to CRG Research button (prefilled mailto; user attaches doc manually).
-     NEW: Phone input upgraded with country code select + formatted typing (keeps hidden #authorPhone). -->
+     NEW: Phone input upgraded with country code select + formatted typing (keeps hidden #authorPhone).
+     NEW: Adds institutional footer (version + disclaimers) pinned bottom-right inside the card. -->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -15,9 +16,49 @@
 
   <!-- Chart.js (for price chart) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- NEW: small inline CSS for bottom-right institutional footer (safe even if you don't edit styles.css) -->
+  <style>
+    /* pin inside the white container, like an institutional app footer */
+    .container { position: relative; }
+    .institutional-footer{
+      position: absolute;
+      right: 18px;
+      bottom: 14px;
+      text-align: right;
+      max-width: min(520px, calc(100% - 36px));
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      line-height: 1.4;
+      color: rgba(11,14,20,.52);
+      user-select: none;
+      pointer-events: none;
+    }
+    .institutional-footer .inst-version{
+      font-weight: 600;
+      color: rgba(11,14,20,.62);
+      letter-spacing: .2px;
+      margin-bottom: 4px;
+    }
+    .institutional-footer .inst-disclaimer{
+      color: rgba(11,14,20,.50);
+    }
+    /* ensure footer doesn't collide with the form content on smaller screens */
+    .container-pad-bottom{ padding-bottom: 86px; }
+    @media (max-width: 768px){
+      .institutional-footer{
+        right: 14px;
+        bottom: 12px;
+        font-size: 10.5px;
+      }
+      .container-pad-bottom{ padding-bottom: 110px; }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
+  <!-- NEW: add extra bottom padding so the footer never overlaps form content -->
+  <div class="container container-pad-bottom">
 
     <header class="hero">
       <h1 class="hero-title">CRG - Research Documentation Tool</h1>
@@ -265,6 +306,16 @@ Shares: X"></textarea>
     </form>
 
     <div id="message" class="message"></div>
+
+    <!-- NEW: Institutional footer (bottom-right) -->
+    <div class="institutional-footer" aria-hidden="true">
+      <div class="inst-version">CRG Tool v1.0.3</div>
+      <div class="inst-disclaimer">
+        Internal use only. Outputs are draft research documentation generated from user inputs and third-party market data.
+        This tool does not provide investment advice. Verify all figures, tickers, and assumptions before circulation.
+      </div>
+    </div>
+    <!-- /NEW -->
 
   </div>
 
