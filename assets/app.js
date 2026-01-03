@@ -5,6 +5,7 @@
 // AND adds: Email to CRG Research button that opens a prefilled email (user attaches the doc manually).
 // NEW: Country code dropdown + smaller left box + phone formatting while typing.
 // NEW: Fix double brackets ((N/A)) -> (N/A) by returning "N/A" (no brackets) from naIfBlank.
+// NEW: Adds completion meter, attachment summary strip, and reset form button with confirm.
 
 console.log("app.js loaded successfully");
 
@@ -180,6 +181,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
       // NEW: wire formatter
       wireCoauthorPhone(coAuthorDiv);
+
+      // NEW: update completion meter (coauthors not core, but good to refresh UX)
+      updateCompletionMeter();
     });
 
     document.addEventListener("click", (e) => {
@@ -188,6 +192,9 @@ window.addEventListener("DOMContentLoaded", () => {
       const id = btn.getAttribute("data-remove-id");
       const coAuthorDiv = document.getElementById(`coauthor-${id}`);
       if (coAuthorDiv) coAuthorDiv.remove();
+
+      // NEW
+      updateCompletionMeter();
     });
   }
 
@@ -204,11 +211,179 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   if (noteTypeEl && equitySectionEl) {
-    noteTypeEl.addEventListener("change", toggleEquitySection);
+    noteTypeEl.addEventListener("change", () => {
+      toggleEquitySection();
+      // NEW
+      setTimeout(updateCompletionMeter, 0);
+    });
     toggleEquitySection();
   } else {
     console.warn("Equity toggle not wired. Missing #noteType or #equitySection in index.html");
   }
+
+  // ================================
+  // NEW: Completion meter (8 core fields; 12 when Equity selected)
+  // ================================
+  const completionTextEl = document.getElementById("completionText");
+  const completionBarEl = document.getElementById("completionBar");
+
+  function isFilled(el) {
+    if (!el) return false;
+    if (el.type === "file") return el.files && el.files.length > 0;
+    const v = (el.value ?? "").toString().trim();
+    return v.length > 0;
+  }
+
+  // Base core (8): general notes
+  const baseCoreIds = [
+    "noteType",
+    "title",
+    "topic",
+    "authorLastName",
+    "authorFirstName",
+    "keyTakeaways",
+    "analysis",
+    "cordobaView"
+  ];
+
+  // Equity adds 4 => total 12
+  const equityCoreIds = [
+    "ticker",
+    "crgRating",
+    "targetPrice",
+    "modelFiles"
+  ];
+
+  function updateCompletionMeter() {
+    const isEquity = (noteTypeEl && noteTypeEl.value === "Equity Research" && equitySectionEl && equitySectionEl.style.display !== "none");
+    const ids = isEquity ? baseCoreIds.concat(equityCoreIds) : baseCoreIds;
+
+    let done = 0;
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (isFilled(el)) done++;
+    });
+
+    const total = ids.length;
+    const pct = total ? Math.round((done / total) * 100) : 0;
+
+    if (completionTextEl) completionTextEl.textContent = `${done} / ${total} core fields`;
+    if (completionBarEl) completionBarEl.style.width = `${pct}%`;
+
+    const bar = completionBarEl?.parentElement;
+    if (bar) bar.setAttribute("aria-valuenow", String(pct));
+  }
+
+  // Update meter on changes across the form
+  ["input", "change", "keyup"].forEach(evt => {
+    document.addEventListener(evt, (e) => {
+      if (!e.target) return;
+      if (e.target.closest && e.target.closest("#researchForm")) updateCompletionMeter();
+    }, { passive: true });
+  });
+
+  // ================================
+  // NEW: Attachment summary strip (modelFiles)
+  // ================================
+  const modelFilesEl2 = document.getElementById("modelFiles");
+  const attachSummaryHeadEl = document.getElementById("attachmentSummaryHead");
+  const attachSummaryListEl = document.getElementById("attachmentSummaryList");
+
+  function updateAttachmentSummary() {
+    if (!modelFilesEl2 || !attachSummaryHeadEl || !attachSummaryListEl) return;
+
+    const files = Array.from(modelFilesEl2.files || []);
+    if (!files.length) {
+      attachSummaryHeadEl.textContent = "No files selected";
+      attachSummaryListEl.style.display = "none";
+      attachSummaryListEl.innerHTML = "";
+      return;
+    }
+
+    attachSummaryHeadEl.textContent = `${files.length} file${files.length === 1 ? "" : "s"} selected`;
+    attachSummaryListEl.style.display = "block";
+    attachSummaryListEl.innerHTML = files.map(f => `<div class="attachment-file">${f.name}</div>`).join("");
+  }
+
+  if (modelFilesEl2) {
+    modelFilesEl2.addEventListener("change", () => {
+      updateAttachmentSummary();
+      updateCompletionMeter();
+    });
+  }
+
+  // ================================
+  // NEW: Reset form button with confirm
+  // ================================
+  const resetBtn = document.getElementById("resetFormBtn");
+  const formEl = document.getElementById("researchForm");
+
+  function clearChartUI() {
+    // clear chart stats UI safely
+    const setText = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+    setText("currentPrice", "—");
+    setText("realisedVol", "—");
+    setText("rangeReturn", "—");
+    setText("upsideToTarget", "—");
+
+    const chartStatus = document.getElementById("chartStatus");
+    if (chartStatus) chartStatus.textContent = "";
+
+    // if chart exists, destroy
+    if (typeof priceChart !== "undefined" && priceChart) {
+      try { priceChart.destroy(); } catch (_) {}
+      priceChart = null;
+    }
+
+    // reset globals if present
+    if (typeof priceChartImageBytes !== "undefined") priceChartImageBytes = null;
+    if (typeof equityStats !== "undefined") {
+      equityStats = { currentPrice: null, realisedVolAnn: null, rangeReturn: null };
+    }
+  }
+
+  if (resetBtn && formEl) {
+    resetBtn.addEventListener("click", () => {
+      const ok = confirm("Reset the form? This will clear all fields on this page.");
+      if (!ok) return;
+
+      formEl.reset();
+
+      // Clear co-authors added dynamically
+      if (coAuthorsList) coAuthorsList.innerHTML = "";
+
+      // Clear file input + attachment summary
+      if (modelFilesEl2) modelFilesEl2.value = "";
+      updateAttachmentSummary();
+
+      // Clear message box
+      const messageDiv = document.getElementById("message");
+      if (messageDiv) {
+        messageDiv.className = "message";
+        messageDiv.textContent = "";
+        messageDiv.style.display = "none";
+      }
+
+      // Clear chart UI
+      clearChartUI();
+
+      // Re-sync phone hidden values
+      syncPrimaryPhone();
+
+      // Hide/show equity section appropriately
+      toggleEquitySection();
+
+      // Refresh meter
+      setTimeout(updateCompletionMeter, 0);
+    });
+  }
+
+  // Initial paint
+  updateAttachmentSummary();
+  updateCompletionMeter();
 
   // ================================
   // Date/time formatting
@@ -571,7 +746,10 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   if (targetPriceEl) {
-    targetPriceEl.addEventListener("input", updateUpsideDisplay);
+    targetPriceEl.addEventListener("input", () => {
+      updateUpsideDisplay();
+      updateCompletionMeter(); // NEW: targetPrice is a core field for Equity
+    });
   }
 
   async function buildPriceChart() {
@@ -634,6 +812,9 @@ window.addEventListener("DOMContentLoaded", () => {
       setText("upsideToTarget", "—");
 
       if (chartStatus) chartStatus.textContent = `✗ ${e.message}`;
+    } finally {
+      // NEW
+      updateCompletionMeter();
     }
   }
 
