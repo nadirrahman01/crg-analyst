@@ -1,13 +1,85 @@
 // assets/app.js
 // NOTE: Only additions made (no removals). Adds: target price + current price + vol + range return + upside,
 // AND adds: CRG Rating selector export into Word doc.
-// AND adds: optional phones (outputs "(N/A)"), and other UX additions.
+// AND adds: optional phones (outputs "N/A"), and other UX additions.
 // AND adds: Email to CRG Research button that opens a prefilled email (user attaches the doc manually).
-// AND adds: Phone country code selector + auto hyphen formatting (CC-XXXXXXXX...) for primary + coauthors.
+// NEW: Country code dropdown + smaller left box + phone formatting while typing.
+// NEW: Fix double brackets ((N/A)) -> (N/A) by returning "N/A" (no brackets) from naIfBlank.
 
 console.log("app.js loaded successfully");
 
 window.addEventListener("DOMContentLoaded", () => {
+  // ================================
+  // NEW: Phone formatting helpers (shared)
+  // ================================
+  function digitsOnly(v) {
+    return (v || "").toString().replace(/\D/g, "");
+  }
+
+  // Visible formatting only (keeps UX tidy); hidden value stays cc-NUMBERDIGITS
+  // Example visible: 7398 344 190 (groups of 4/3/3-ish)
+  function formatNationalLoose(rawDigits) {
+    const d = digitsOnly(rawDigits);
+    if (!d) return "";
+
+    // simple, readable grouping: 4-3-3 then remainder
+    const p1 = d.slice(0, 4);
+    const p2 = d.slice(4, 7);
+    const p3 = d.slice(7, 10);
+    const rest = d.slice(10);
+
+    return [p1, p2, p3, rest].filter(Boolean).join(" ");
+  }
+
+  // Hidden combined format used across Word export + email meta, etc.
+  // Example: "44-7398344190"
+  function buildInternationalHyphen(ccDigits, nationalDigits) {
+    const cc = digitsOnly(ccDigits);
+    const nn = digitsOnly(nationalDigits);
+    if (!cc && !nn) return "";
+    if (cc && !nn) return `${cc}-`;
+    if (!cc && nn) return nn;
+    return `${cc}-${nn}`;
+  }
+
+  // Wire primary author phone (country select + national input -> hidden #authorPhone)
+  const authorPhoneCountryEl = document.getElementById("authorPhoneCountry");
+  const authorPhoneNationalEl = document.getElementById("authorPhoneNational");
+  const authorPhoneHiddenEl = document.getElementById("authorPhone"); // kept for existing logic
+
+  function syncPrimaryPhone() {
+    if (!authorPhoneHiddenEl) return;
+    const cc = authorPhoneCountryEl ? authorPhoneCountryEl.value : "";
+    const nationalDigits = digitsOnly(authorPhoneNationalEl ? authorPhoneNationalEl.value : "");
+    authorPhoneHiddenEl.value = buildInternationalHyphen(cc, nationalDigits);
+  }
+
+  function formatPrimaryVisible() {
+    if (!authorPhoneNationalEl) return;
+    const caret = authorPhoneNationalEl.selectionStart || 0;
+    const beforeLen = authorPhoneNationalEl.value.length;
+
+    authorPhoneNationalEl.value = formatNationalLoose(authorPhoneNationalEl.value);
+
+    // best-effort caret stability
+    const afterLen = authorPhoneNationalEl.value.length;
+    const delta = afterLen - beforeLen;
+    const next = Math.max(0, caret + delta);
+    authorPhoneNationalEl.setSelectionRange(next, next);
+
+    syncPrimaryPhone();
+  }
+
+  if (authorPhoneNationalEl) {
+    authorPhoneNationalEl.addEventListener("input", formatPrimaryVisible);
+    authorPhoneNationalEl.addEventListener("blur", syncPrimaryPhone);
+  }
+  if (authorPhoneCountryEl) {
+    authorPhoneCountryEl.addEventListener("change", syncPrimaryPhone);
+  }
+  // initialise
+  syncPrimaryPhone();
+
   // ================================
   // Co-Author Management
   // ================================
@@ -16,6 +88,66 @@ window.addEventListener("DOMContentLoaded", () => {
   const addCoAuthorBtn = document.getElementById("addCoAuthor");
   const coAuthorsList = document.getElementById("coAuthorsList");
 
+  // NEW: Create a country code select HTML once (reuse)
+  const countryOptionsHtml = `
+    <option value="44" selected>🇬🇧 +44</option>
+    <option value="1">🇺🇸 +1</option>
+    <option value="353">🇮🇪 +353</option>
+    <option value="33">🇫🇷 +33</option>
+    <option value="49">🇩🇪 +49</option>
+    <option value="31">🇳🇱 +31</option>
+    <option value="34">🇪🇸 +34</option>
+    <option value="39">🇮🇹 +39</option>
+    <option value="971">🇦🇪 +971</option>
+    <option value="966">🇸🇦 +966</option>
+    <option value="92">🇵🇰 +92</option>
+    <option value="880">🇧🇩 +880</option>
+    <option value="91">🇮🇳 +91</option>
+    <option value="234">🇳🇬 +234</option>
+    <option value="254">🇰🇪 +254</option>
+    <option value="27">🇿🇦 +27</option>
+    <option value="995">🇬🇪 +995</option>
+    <option value="">Other</option>
+  `;
+
+  function wireCoauthorPhone(coAuthorDiv) {
+    const ccEl = coAuthorDiv.querySelector(".coauthor-country");
+    const nationalEl = coAuthorDiv.querySelector(".coauthor-phone-local");
+    const hiddenEl = coAuthorDiv.querySelector(".coauthor-phone"); // existing expectation
+
+    if (!hiddenEl) return;
+
+    function syncHidden() {
+      const cc = ccEl ? ccEl.value : "";
+      const nn = digitsOnly(nationalEl ? nationalEl.value : "");
+      hiddenEl.value = buildInternationalHyphen(cc, nn);
+    }
+
+    function formatVisible() {
+      if (!nationalEl) return;
+      const caret = nationalEl.selectionStart || 0;
+      const beforeLen = nationalEl.value.length;
+
+      nationalEl.value = formatNationalLoose(nationalEl.value);
+
+      const afterLen = nationalEl.value.length;
+      const delta = afterLen - beforeLen;
+      const next = Math.max(0, caret + delta);
+      nationalEl.setSelectionRange(next, next);
+
+      syncHidden();
+    }
+
+    if (nationalEl) {
+      nationalEl.addEventListener("input", formatVisible);
+      nationalEl.addEventListener("blur", syncHidden);
+    }
+    if (ccEl) ccEl.addEventListener("change", syncHidden);
+
+    // init
+    syncHidden();
+  }
+
   if (addCoAuthorBtn) {
     addCoAuthorBtn.addEventListener("click", function () {
       coAuthorCount++;
@@ -23,46 +155,31 @@ window.addEventListener("DOMContentLoaded", () => {
       const coAuthorDiv = document.createElement("div");
       coAuthorDiv.className = "coauthor-entry";
       coAuthorDiv.id = `coauthor-${coAuthorCount}`;
+
+      // IMPORTANT: keep .coauthor-phone (hidden) so the rest of your code stays unchanged
       coAuthorDiv.innerHTML = `
         <input type="text" placeholder="Last Name" class="coauthor-lastname" required>
         <input type="text" placeholder="First Name" class="coauthor-firstname" required>
-        <input type="text" placeholder="Phone (e.g., 44-7398344190)" class="coauthor-phone" required>
+
+        <div class="phone-row phone-row--compact">
+          <select class="phone-country coauthor-country" aria-label="Country code">
+            ${countryOptionsHtml}
+          </select>
+          <input type="text" placeholder="Phone number" class="phone-number coauthor-phone-local" inputmode="numeric">
+        </div>
+
+        <input type="text" class="coauthor-phone" style="display:none;" required>
         <button type="button" class="remove-coauthor" data-remove-id="${coAuthorCount}">Remove</button>
       `;
+
       coAuthorsList.appendChild(coAuthorDiv);
 
-      // NEW: make phone optional even though HTML string has required
-      const phoneInput = coAuthorDiv.querySelector(".coauthor-phone");
-      if (phoneInput) phoneInput.required = false;
+      // NEW: make phone optional even though HTML has required on hidden
+      const phoneHidden = coAuthorDiv.querySelector(".coauthor-phone");
+      if (phoneHidden) phoneHidden.required = false;
 
-      // ================================
-      // NEW: inject CC dropdown for co-author + wire formatting (NO REMOVALS)
-      // ================================
-      if (phoneInput) {
-        const ccSelect = document.createElement("select");
-        ccSelect.className = "country-code coauthor-cc";
-        ccSelect.setAttribute("aria-label", "Co-author country code");
-        ccSelect.innerHTML = `
-          <option value="44" selected>+44 (UK)</option>
-          <option value="1">+1 (US/CA)</option>
-          <option value="353">+353 (IE)</option>
-          <option value="971">+971 (UAE)</option>
-          <option value="966">+966 (KSA)</option>
-          <option value="92">+92 (PK)</option>
-          <option value="91">+91 (IN)</option>
-          <option value="880">+880 (BD)</option>
-        `;
-
-        // insert CC select before phone input
-        phoneInput.parentNode.insertBefore(ccSelect, phoneInput);
-
-        // hint mobile keyboards
-        phoneInput.setAttribute("inputmode", "numeric");
-        phoneInput.setAttribute("autocomplete", "tel");
-
-        // wire formatting
-        wirePhoneInput(phoneInput, ccSelect);
-      }
+      // NEW: wire formatter
+      wireCoauthorPhone(coAuthorDiv);
     });
 
     document.addEventListener("click", (e) => {
@@ -112,49 +229,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
     return `${month} ${day}, ${year} ${hours}:${minutes} ${ampm}`;
   }
-
-  // ================================
-  // NEW: Phone formatting (CC-XXXXXXXX...)
-  // ================================
-  function digitsOnly(v) {
-    return (v || "").toString().replace(/\D/g, "");
-  }
-
-  function formatPhoneWithCountryCode(raw, ccDigits) {
-    const cc = digitsOnly(ccDigits || "");
-    let d = digitsOnly(raw);
-
-    // if user typed the country code into the phone box, remove it
-    if (cc && d.startsWith(cc)) d = d.slice(cc.length);
-
-    if (!cc && !d) return "";
-    if (!cc) return d;
-
-    return d ? `${cc}-${d}` : `${cc}-`;
-  }
-
-  function wirePhoneInput(phoneInputEl, ccSelectEl) {
-    if (!phoneInputEl || !ccSelectEl) return;
-
-    const reformat = () => {
-      const cc = ccSelectEl.value;
-      phoneInputEl.value = formatPhoneWithCountryCode(phoneInputEl.value, cc);
-    };
-
-    phoneInputEl.addEventListener("input", reformat);
-    ccSelectEl.addEventListener("change", reformat);
-
-    reformat();
-  }
-
-  // NEW: Primary author wiring
-  const authorPhoneInput = document.getElementById("authorPhone");
-  const authorCcSelect = document.getElementById("authorCountryCode");
-  if (authorPhoneInput) {
-    authorPhoneInput.setAttribute("inputmode", "numeric");
-    authorPhoneInput.setAttribute("autocomplete", "tel");
-  }
-  wirePhoneInput(authorPhoneInput, authorCcSelect);
 
   // ================================
   // NEW: Email to CRG (prefilled mailto)
@@ -211,7 +285,6 @@ window.addEventListener("DOMContentLoaded", () => {
     const dateShort = formatDateShort(now);
     const dateLong = formatDateTime(now);
 
-    // Subject line
     const subjectParts = [
       noteType || "Research Note",
       dateShort,
@@ -221,7 +294,6 @@ window.addEventListener("DOMContentLoaded", () => {
     const subject = subjectParts.join(" ");
     const authorLine = [authorFirstName, authorLastName].filter(Boolean).join(" ").trim();
 
-    // Email body with proper spacing
     const paragraphs = [];
 
     paragraphs.push("Hi CRG Research,");
@@ -242,7 +314,7 @@ window.addEventListener("DOMContentLoaded", () => {
     paragraphs.push("Best,");
     paragraphs.push(authorLine || "");
 
-    const body = paragraphs.join("\n\n"); // double line breaks = clean spacing
+    const body = paragraphs.join("\n\n");
     const cc = ccForNoteType(noteType);
 
     return { subject, body, cc };
@@ -264,7 +336,8 @@ window.addEventListener("DOMContentLoaded", () => {
   // ================================
   function naIfBlank(v) {
     const s = (v ?? "").toString().trim();
-    return s ? s : "(N/A)";
+    // FIX: return "N/A" (no brackets) so coAuthorLine produces "(N/A)" not "((N/A))"
+    return s ? s : "N/A";
   }
 
   function coAuthorLine(coAuthor) {
@@ -351,7 +424,6 @@ window.addEventListener("DOMContentLoaded", () => {
   let priceChart = null;
   let priceChartImageBytes = null;
 
-  // NEW: equity stats cache for UI + Word export
   let equityStats = {
     currentPrice: null,
     realisedVolAnn: null,
@@ -362,8 +434,6 @@ window.addEventListener("DOMContentLoaded", () => {
   const fetchChartBtn = document.getElementById("fetchPriceChart");
   const chartRangeEl = document.getElementById("chartRange");
   const priceChartCanvas = document.getElementById("priceChart");
-
-  // NEW: target + stat UI elements (safe if they don't exist yet)
   const targetPriceEl = document.getElementById("targetPrice");
 
   function stooqSymbolFromTicker(ticker) {
@@ -455,7 +525,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   // ================================
-  // NEW: stats helpers
+  // stats helpers
   // ================================
   function pct(x) { return `${(x * 100).toFixed(1)}%`; }
 
@@ -530,13 +600,9 @@ window.addEventListener("DOMContentLoaded", () => {
         title: `${tickerVal.toUpperCase()} Close`
       });
 
-      // wait a tick so chart paints
       await new Promise(r => setTimeout(r, 150));
       priceChartImageBytes = canvasToPngBytes(priceChartCanvas);
 
-      // ================================
-      // NEW: compute and display stats
-      // ================================
       const closes = values;
       const currentPrice = closes[closes.length - 1];
       const startPrice = closes[0];
@@ -561,7 +627,6 @@ window.addEventListener("DOMContentLoaded", () => {
     } catch (e) {
       priceChartImageBytes = null;
 
-      // NEW: reset stats display
       equityStats = { currentPrice: null, realisedVolAnn: null, rangeReturn: null };
       setText("currentPrice", "—");
       setText("rangeReturn", "—");
@@ -581,7 +646,6 @@ window.addEventListener("DOMContentLoaded", () => {
     const {
       noteType, title, topic,
       authorLastName, authorFirstName, authorPhone,
-      // NEW: safe phone (N/A if blank)
       authorPhoneSafe,
       coAuthors,
       analysis, keyTakeaways, content, cordobaView,
@@ -590,11 +654,9 @@ window.addEventListener("DOMContentLoaded", () => {
       ticker, valuationSummary, keyAssumptions, scenarioNotes, modelFiles, modelLink,
       priceChartImageBytes,
 
-      // NEW
       targetPrice,
       equityStats,
 
-      // NEW: rating
       crgRating
     } = data;
 
@@ -610,6 +672,10 @@ window.addEventListener("DOMContentLoaded", () => {
     const cordobaViewParagraphs = linesToParagraphs(cordobaView, 150);
 
     const imageParagraphs = await addImages(imageFiles);
+
+    // NEW: ensure author phone prints as "(N/A)" (single bracket pair)
+    const authorPhonePrintable = authorPhoneSafe ? authorPhoneSafe : naIfBlank(authorPhone);
+    const authorPhoneWrapped = authorPhonePrintable ? `(${authorPhonePrintable})` : "(N/A)";
 
     const infoTable = new docx.Table({
       width: { size: 100, type: docx.WidthType.PERCENTAGE },
@@ -633,7 +699,7 @@ window.addEventListener("DOMContentLoaded", () => {
               children: [
                 new docx.Paragraph({
                   children: [new docx.TextRun({
-                    text: `${authorLastName.toUpperCase()}, ${authorFirstName.toUpperCase()} ${authorPhoneSafe}`,
+                    text: `${authorLastName.toUpperCase()}, ${authorFirstName.toUpperCase()} ${authorPhoneWrapped}`,
                     bold: true,
                     size: 28
                   })],
@@ -691,9 +757,6 @@ window.addEventListener("DOMContentLoaded", () => {
       })
     ];
 
-    // ================================
-    // Equity block
-    // ================================
     if (noteType === "Equity Research") {
       const attachedModelNames = (modelFiles && modelFiles.length) ? Array.from(modelFiles).map(f => f.name) : [];
 
@@ -709,7 +772,6 @@ window.addEventListener("DOMContentLoaded", () => {
         );
       }
 
-      // Rating line (only if selected)
       if ((crgRating || "").trim()) {
         documentChildren.push(
           new docx.Paragraph({
@@ -725,7 +787,6 @@ window.addEventListener("DOMContentLoaded", () => {
       const modelLinkPara = hyperlinkParagraph("Model link:", modelLink);
       if (modelLinkPara) documentChildren.push(modelLinkPara);
 
-      // Price chart in doc (if fetched)
       if (priceChartImageBytes) {
         documentChildren.push(
           new docx.Paragraph({
@@ -740,7 +801,6 @@ window.addEventListener("DOMContentLoaded", () => {
         );
       }
 
-      // Market stats block (only if chart fetched)
       if (equityStats && equityStats.currentPrice) {
         const tp = (targetPrice || "").trim();
         const tpNum = safeNum(tp);
@@ -856,9 +916,6 @@ window.addEventListener("DOMContentLoaded", () => {
       documentChildren.push(new docx.Paragraph({ spacing: { after: 250 } }));
     }
 
-    // ================================
-    // Main sections
-    // ================================
     documentChildren.push(
       new docx.Paragraph({
         children: [new docx.TextRun({ text: "Key Takeaways", bold: true, size: 24, font: "Book Antiqua" })],
@@ -895,9 +952,6 @@ window.addEventListener("DOMContentLoaded", () => {
       );
     }
 
-    // ================================
-    // DOC: header + FOOTER restored
-    // ================================
     const doc = new docx.Document({
       styles: {
         default: {
@@ -976,8 +1030,6 @@ window.addEventListener("DOMContentLoaded", () => {
   // Main Form Submission
   // ================================
   const form = document.getElementById("researchForm");
-
-  // NEW: ensure browser validation doesn't block optional phone (even if HTML still has required)
   if (form) form.noValidate = true;
 
   form.addEventListener("submit", async function (e) {
@@ -1002,8 +1054,8 @@ window.addEventListener("DOMContentLoaded", () => {
       const authorLastName = document.getElementById("authorLastName").value;
       const authorFirstName = document.getElementById("authorFirstName").value;
 
+      // IMPORTANT: hidden field stays source-of-truth
       const authorPhone = document.getElementById("authorPhone").value;
-      // NEW
       const authorPhoneSafe = naIfBlank(authorPhone);
 
       const analysis = document.getElementById("analysis").value;
@@ -1019,10 +1071,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const modelFiles = document.getElementById("modelFiles") ? document.getElementById("modelFiles").files : null;
       const modelLink = document.getElementById("modelLink") ? document.getElementById("modelLink").value : "";
 
-      // NEW
       const targetPrice = document.getElementById("targetPrice") ? document.getElementById("targetPrice").value : "";
-
-      // NEW: rating
       const crgRating = document.getElementById("crgRating") ? document.getElementById("crgRating").value : "";
 
       const now = new Date();
@@ -1032,27 +1081,21 @@ window.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll(".coauthor-entry").forEach(entry => {
         const lastName = entry.querySelector(".coauthor-lastname").value;
         const firstName = entry.querySelector(".coauthor-firstname").value;
-        const phone = entry.querySelector(".coauthor-phone").value;
-        // NEW: phone optional; still require names
+        const phone = entry.querySelector(".coauthor-phone").value; // hidden combined
         if (lastName && firstName) coAuthors.push({ lastName, firstName, phone: naIfBlank(phone) });
       });
 
       const doc = await createDocument({
         noteType, title, topic,
         authorLastName, authorFirstName, authorPhone,
-        // NEW
         authorPhoneSafe,
         coAuthors,
         analysis, keyTakeaways, content, cordobaView,
         imageFiles, dateTimeString,
         ticker, valuationSummary, keyAssumptions, scenarioNotes, modelFiles, modelLink,
         priceChartImageBytes,
-
-        // NEW
         targetPrice,
         equityStats,
-
-        // NEW: rating
         crgRating
       });
 
