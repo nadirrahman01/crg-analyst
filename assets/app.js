@@ -84,77 +84,104 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   // ================================
-  // NEW: Email to CRG (prefilled mailto)
-  // Note: browsers cannot auto-attach files for security reasons.
-  // User will attach the downloaded Word doc manually.
-  // ================================
-  const emailToCrgBtn = document.getElementById("emailToCrgBtn");
+// NEW: Email to CRG (prefilled mailto)
+// Note: browsers cannot auto-attach files for security reasons.
+// User will attach the downloaded Word doc manually.
+// ================================
+const emailToCrgBtn = document.getElementById("emailToCrgBtn");
 
-  function formatDateShort(date) {
-    // e.g., 2026-01-02
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  }
+function formatDateShort(date) {
+  // e.g., 2026-01-02
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
 
-  function buildCrgEmailPayload() {
-    const noteType = (document.getElementById("noteType")?.value || "Research Note").trim();
-    const title = (document.getElementById("title")?.value || "").trim();
-    const topic = (document.getElementById("topic")?.value || "").trim();
+// NEW: make line breaks render properly in more email clients
+function buildMailto(to, cc, subject, body) {
+  // Many clients behave better with CRLF (%0D%0A) than LF (%0A)
+  const crlfBody = (body || "").replace(/\n/g, "\r\n");
+  const params = new URLSearchParams();
+  if (cc) params.set("cc", cc);
+  params.set("subject", subject || "");
+  params.set("body", crlfBody);
+  return `mailto:${encodeURIComponent(to)}?${params.toString()}`;
+}
 
-    const authorFirstName = (document.getElementById("authorFirstName")?.value || "").trim();
-    const authorLastName = (document.getElementById("authorLastName")?.value || "").trim();
+function ccForNoteType(noteTypeRaw) {
+  const t = (noteTypeRaw || "").toLowerCase();
 
-    const ticker = (document.getElementById("ticker")?.value || "").trim();
-    const crgRating = (document.getElementById("crgRating")?.value || "").trim();
-    const targetPrice = (document.getElementById("targetPrice")?.value || "").trim();
+  if (t.includes("equity")) return "tommaso@cordobarg.com";
 
-    const now = new Date();
-    const dateShort = formatDateShort(now);
-    const dateLong = formatDateTime(now);
+  if (t.includes("macro") || t.includes("market")) return "tim@cordobarg.com";
 
-    const subjectParts = [
-      noteType || "Research Note",
-      dateShort,
-      title ? `— ${title}` : ""
-    ].filter(Boolean);
+  if (t.includes("commodity")) return "uhayd@cordobarg.com".toLowerCase();
 
-    const subject = subjectParts.join(" ");
+  return "";
+}
 
-    const authorLine = [authorFirstName, authorLastName].filter(Boolean).join(" ").trim();
+function buildCrgEmailPayload() {
+  const noteType = (document.getElementById("noteType")?.value || "Research Note").trim();
+  const title = (document.getElementById("title")?.value || "").trim();
+  const topic = (document.getElementById("topic")?.value || "").trim();
 
-    const bodyLines = [
-      "Hi CRG Research,",
-      "",
-      "Please find my most recent note attached.",
-      "",
-      `Note type: ${noteType || "(N/A)"}`,
-      title ? `Title: ${title}` : null,
-      topic ? `Topic: ${topic}` : null,
-      ticker ? `Ticker (Stooq): ${ticker}` : null,
-      crgRating ? `CRG Rating: ${crgRating}` : null,
-      targetPrice ? `Target Price: ${targetPrice}` : null,
-      `Generated: ${dateLong}`,
-      "",
-      "Best,",
-      authorLine || ""
-    ].filter(Boolean);
+  const authorFirstName = (document.getElementById("authorFirstName")?.value || "").trim();
+  const authorLastName = (document.getElementById("authorLastName")?.value || "").trim();
 
-    const body = bodyLines.join("\n");
-    return { subject, body };
-  }
+  const ticker = (document.getElementById("ticker")?.value || "").trim();
+  const crgRating = (document.getElementById("crgRating")?.value || "").trim();
+  const targetPrice = (document.getElementById("targetPrice")?.value || "").trim();
 
-  if (emailToCrgBtn) {
-    emailToCrgBtn.addEventListener("click", () => {
-      const { subject, body } = buildCrgEmailPayload();
+  const now = new Date();
+  const dateShort = formatDateShort(now);
+  const dateLong = formatDateTime(now);
 
-      const to = "research@cordobarg.com";
-      const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const subjectParts = [
+    noteType || "Research Note",
+    dateShort,
+    title ? `— ${title}` : ""
+  ].filter(Boolean);
 
-      window.location.href = mailto;
-    });
-  }
+  const subject = subjectParts.join(" ");
+  const authorLine = [authorFirstName, authorLastName].filter(Boolean).join(" ").trim();
+
+  const paragraphs = [];
+
+  paragraphs.push("Hi CRG Research,");
+  paragraphs.push("Please find my most recent note attached.");
+
+  const metaLines = [
+    `Note type: ${noteType || "(N/A)"}`,
+    title ? `Title: ${title}` : null,
+    topic ? `Topic: ${topic}` : null,
+    ticker ? `Ticker (Stooq): ${ticker}` : null,
+    crgRating ? `CRG Rating: ${crgRating}` : null,
+    targetPrice ? `Target Price: ${targetPrice}` : null,
+    `Generated: ${dateLong}`
+  ].filter(Boolean);
+
+  paragraphs.push(metaLines.join("\n"));
+
+  paragraphs.push("Best,");
+  paragraphs.push(authorLine || "");
+
+  const body = paragraphs.join("\n\n"); // <-- key change
+  const cc = ccForNoteType(noteType);
+
+  return { subject, body, cc };
+}
+
+if (emailToCrgBtn) {
+  emailToCrgBtn.addEventListener("click", () => {
+    const { subject, body, cc } = buildCrgEmailPayload();
+
+    const to = "research@cordobarg.com";
+    const mailto = buildMailto(to, cc, subject, body);
+
+    window.location.href = mailto;
+  });
+}
 
   // ================================
   // NEW: optional field helpers
