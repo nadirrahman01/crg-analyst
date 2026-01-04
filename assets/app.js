@@ -863,7 +863,32 @@ window.addEventListener("DOMContentLoaded", () => {
         new docx.TableRow({
           children: [
             new docx.TableCell({
-              children: [new docx.Paragraph({ text: title, bold: true, size: 28, spacing: { after: 100 } })],
+              // ================================
+              // ✅ UPDATE: Topic (10pt, not bold) + Title (14pt, bold)
+              // Topic is placed where title used to be; title sits directly below it.
+              // ================================
+              children: [
+                // TOPIC line (10pt, not bold)
+                new docx.Paragraph({
+                  children: [
+                    new docx.TextRun({ text: "TOPIC: ", bold: false, size: 20, font: "Book Antiqua" }),
+                    new docx.TextRun({ text: (topic || ""), bold: false, size: 20, font: "Book Antiqua" })
+                  ],
+                  spacing: { after: 120 }
+                }),
+                // TITLE line (14pt, bold)
+                new docx.Paragraph({
+                  children: [
+                    new docx.TextRun({
+                      text: (title || ""),
+                      bold: true,
+                      size: 28, // 14pt
+                      font: "Book Antiqua"
+                    })
+                  ],
+                  spacing: { after: 100 }
+                })
+              ],
               width: { size: 60, type: docx.WidthType.PERCENTAGE },
               verticalAlign: docx.VerticalAlign.TOP
             }),
@@ -873,7 +898,8 @@ window.addEventListener("DOMContentLoaded", () => {
                   children: [new docx.TextRun({
                     text: `${authorLastName.toUpperCase()}, ${authorFirstName.toUpperCase()} ${authorPhoneWrapped}`,
                     bold: true,
-                    size: 28
+                    size: 28,
+                    font: "Book Antiqua"
                   })],
                   alignment: docx.AlignmentType.RIGHT,
                   spacing: { after: 100 }
@@ -887,15 +913,8 @@ window.addEventListener("DOMContentLoaded", () => {
         new docx.TableRow({
           children: [
             new docx.TableCell({
-              children: [
-                new docx.Paragraph({
-                  children: [
-                    new docx.TextRun({ text: "TOPIC: ", bold: true, size: 28 }),
-                    new docx.TextRun({ text: topic, bold: true, size: 28 })
-                  ],
-                  spacing: { after: 200 }
-                })
-              ],
+              // keep structure; blank so topic/title aren't duplicated
+              children: [new docx.Paragraph({ text: "", spacing: { after: 200 } })],
               width: { size: 60, type: docx.WidthType.PERCENTAGE },
               verticalAlign: docx.VerticalAlign.TOP
             }),
@@ -906,7 +925,8 @@ window.addEventListener("DOMContentLoaded", () => {
                     children: [new docx.TextRun({
                       text: coAuthorLine(coAuthor),
                       bold: true,
-                      size: 28
+                      size: 28,
+                      font: "Book Antiqua"
                     })],
                     alignment: docx.AlignmentType.RIGHT,
                     spacing: { after: 100 }
@@ -1169,7 +1189,7 @@ window.addEventListener("DOMContentLoaded", () => {
                 children: [
                   new docx.TextRun({ text: "\t" }),
                   new docx.TextRun({
-                    text: "Cordoba Research Group Internal Information",
+                    text: "Cordoba Research Group Public Information",
                     size: 16,
                     font: "Book Antiqua",
                     italics: true
